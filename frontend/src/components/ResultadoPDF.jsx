@@ -31,7 +31,7 @@ export default function ResultadoPDF({ result, documentType, onNewDocument }) {
         </div>
 
         <a
-          href="https://wa.me/5567981783902"
+          href="https://wa.me/5567981328096"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2 w-full mb-3 rounded-xl font-bold font-body
