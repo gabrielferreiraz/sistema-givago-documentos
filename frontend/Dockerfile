@@ -9,6 +9,16 @@ RUN npm ci
 
 # Copia o restante do código e gera o build de produção
 COPY frontend/ .
+
+# Declara os build args recebidos do EasyPanel e os expõe como variáveis
+# de ambiente para que o Vite os embutas no bundle estático
+ARG VITE_N8N_WEBHOOK_URL
+ARG VITE_N8N_WEBHOOK_TOKEN
+ARG VITE_PDF_TIMEOUT_MS=90000
+ENV VITE_N8N_WEBHOOK_URL=$VITE_N8N_WEBHOOK_URL
+ENV VITE_N8N_WEBHOOK_TOKEN=$VITE_N8N_WEBHOOK_TOKEN
+ENV VITE_PDF_TIMEOUT_MS=$VITE_PDF_TIMEOUT_MS
+
 RUN npm run build
 
 # ─── Stage 2: produção ────────────────────────────────────────────────────────
