@@ -1,0 +1,6 @@
+# Claude Code (memórias e contexto local)
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db

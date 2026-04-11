@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Givago — Contrato {{numero}}</title>
+  <style>
+    /*
+     * TEMPLATE DA PÁGINA 5 — CONTRATO
+     * Mesmo processo de calibragem do template de orçamento.
+     * Se a página 5 do contrato for igual à do orçamento com campos extras,
+     * basta adicionar/mover os campos abaixo. Caso seja uma página diferente,
+     * use o PNG correspondente.
+     */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 794px;
+      height: 1123px;
+      position: relative;
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #fff;
+    }
+
+    .fundo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    .campo {
+      position: absolute;
+      z-index: 10;
+      font-size: 11px;
+      color: #1a1a1a;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+
+    .campo.grande {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .campo.monetario {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .campo.numero-doc {
+      font-size: 10px;
+      color: #555;
+      letter-spacing: 0.5px;
+    }
+
+    .campo.multilinha {
+      white-space: pre-wrap;
+      max-width: 420px;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <img
+    class="fundo"
+    src="/storage/givago/pagina5-contrato.png"
+    alt=""
+  />
+
+  <!-- Número e data de assinatura -->
+  <span class="campo numero-doc" style="top: 118px; left: 502px;">{{numero}}</span>
+  <span class="campo numero-doc" style="top: 118px; left: 650px;">{{data_assinatura}}</span>
+
+  <!-- Contratante -->
+  <span class="campo" style="top: 220px; left: 150px;">{{nome_contratante}}</span>
+  <span class="campo" style="top: 245px; left: 150px;">{{cpf_cnpj}}</span>
+  <span class="campo" style="top: 270px; left: 150px;">{{telefone}}</span>
+
+  <!-- Evento -->
+  <span class="campo grande" style="top: 330px; left: 150px;">{{nome_evento}}</span>
+  <span class="campo" style="top: 360px; left: 150px;">{{data_evento}}</span>
+  <span class="campo" style="top: 360px; left: 370px;">{{horario_inicio}} às {{horario_fim}}</span>
+  <span class="campo" style="top: 390px; left: 150px;">{{local_evento}}</span>
+  <span class="campo" style="top: 415px; left: 150px;">{{cidade_estado}}</span>
+
+  <!-- Cachê -->
+  <span class="campo monetario" style="top: 490px; left: 150px;">{{valor_cache_formatado}}</span>
+  <span class="campo" style="top: 520px; left: 150px;">{{forma_pagamento}}</span>
+
+  <!-- Cláusulas especiais (somente no contrato) -->
+  <span class="campo multilinha" style="top: 575px; left: 150px;">{{clausulas_especiais}}</span>
+
+  <!-- Rider técnico / Observações -->
+  <span class="campo multilinha" style="top: 680px; left: 150px;">{{observacoes}}</span>
+
+</body>
+</html>

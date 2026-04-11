@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Givago — Gerador de Documentos</title>
+    <meta name="description" content="Sistema interno de geração de orçamentos e contratos" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23f59e0b' d='M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background-color: #06060d;
+        color: #f1f0ee;
+        font-family: 'Lato', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root { min-height: 100vh; }
+      /* Scrollbar customizada */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: #0d0d1a; }
+      ::-webkit-scrollbar-thumb { background: #d97706; border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

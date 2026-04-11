@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Givago — Orçamento {{numero}}</title>
+  <style>
+    /*
+     * TEMPLATE DA PÁGINA 5 — ORÇAMENTO
+     * Dimensões A4 a 96dpi: 794 x 1123px
+     * Para exportar a imagem de fundo em alta qualidade use 150-300dpi:
+     *   150dpi = 1240 x 1754px → defina width/height como 1240px/1754px e ajuste os campos proporcionalmente
+     *
+     * INSTRUÇÕES DE AJUSTE:
+     * 1. Exporte a página 5 do PDF original como PNG (150dpi mínimo)
+     * 2. Salve em /storage/givago/pagina5-orcamento.png na VPS
+     * 3. Abra este HTML no Chrome e ajuste os valores top/left de cada .campo
+     *    para alinhar com os espaços em branco do layout
+     * 4. A fonte dos textos deve bater com a fonte do layout original (identificar no Illustrator)
+     */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 794px;
+      height: 1123px;
+      position: relative;
+      overflow: hidden;
+      /* Substitua pelo nome da fonte real do layout quando identificada */
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #fff;
+    }
+
+    .fundo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    /* Classe base para todos os campos */
+    .campo {
+      position: absolute;
+      z-index: 10;
+      font-size: 11px;
+      color: #1a1a1a;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+
+    .campo.grande {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .campo.monetario {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .campo.numero-doc {
+      font-size: 10px;
+      color: #555;
+      letter-spacing: 0.5px;
+    }
+
+    /* Campo multilinha (observações) */
+    .campo.multilinha {
+      white-space: pre-wrap;
+      max-width: 420px;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       IMAGEM DE FUNDO (PNG exportado do layout original)
+       Caminho local na VPS — Gotenberg acessa via filesystem
+       ============================================================ -->
+  <img
+    class="fundo"
+    src="/storage/givago/pagina5-orcamento.png"
+    alt=""
+  />
+
+  <!-- ============================================================
+       CAMPOS DE DADOS — COORDENADAS PLACEHOLDER
+       Ajuste top/left conforme o layout real do PDF
+       Use o Chrome DevTools para inspecionar e calibrar
+       ============================================================ -->
+
+  <!-- Número e data de validade -->
+  <span class="campo numero-doc" style="top: 118px; left: 502px;">{{numero}}</span>
+  <span class="campo numero-doc" style="top: 118px; left: 650px;">{{data_validade}}</span>
+
+  <!-- Dados do contratante -->
+  <span class="campo" style="top: 220px; left: 150px;">{{nome_contratante}}</span>
+  <span class="campo" style="top: 245px; left: 150px;">{{cpf_cnpj}}</span>
+  <span class="campo" style="top: 270px; left: 150px;">{{telefone}}</span>
+
+  <!-- Dados do evento -->
+  <span class="campo grande" style="top: 330px; left: 150px;">{{nome_evento}}</span>
+  <span class="campo" style="top: 360px; left: 150px;">{{data_evento_br}}</span>
+  <span class="campo" style="top: 390px; left: 150px;">{{local_evento}}</span>
+
+  <!-- Horário — linha condicional: só aparece se data.horario existir -->
+  <!-- No nó "Monta HTML com variáveis" do N8N, use o trecho abaixo: -->
+  <!-- ${data.horario ? `<span class="campo" style="top: 415px; left: 150px;">${data.horario}</span>` : ''} -->
+  {{#horario}}<span class="campo" style="top: 415px; left: 150px;">{{horario}}</span>{{/horario}}
+
+  <!-- Cachê e pagamento -->
+  <span class="campo monetario" style="top: 490px; left: 150px;">{{valor_cache_formatado}}</span>
+  <span class="campo" style="top: 520px; left: 150px;">{{forma_pagamento}}</span>
+
+  <!-- Observações / Rider -->
+  <span class="campo multilinha" style="top: 590px; left: 150px;">{{observacoes}}</span>
+
+</body>
+</html>
