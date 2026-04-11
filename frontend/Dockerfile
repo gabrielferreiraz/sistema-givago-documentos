@@ -4,11 +4,11 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Instala dependências primeiro (camada cacheável separada do código)
-COPY package.json package-lock.json ./
+COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
 # Copia o restante do código e gera o build de produção
-COPY . .
+COPY frontend/ .
 RUN npm run build
 
 # ─── Stage 2: produção ────────────────────────────────────────────────────────
