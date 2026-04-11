@@ -32,7 +32,7 @@ export async function gerarDocumento({ tipo, formData }) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: token } : {}),
       },
       body: JSON.stringify(buildPayload(tipo, formData)),
       signal: controller.signal,
