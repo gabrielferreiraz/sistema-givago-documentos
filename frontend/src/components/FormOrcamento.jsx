@@ -17,10 +17,12 @@ const CAMPOS_OBRIGATORIOS = ['nome', 'evento', 'local_evento', 'data_evento', 'h
 
 const OPCOES_HORAS = [1, 2, 3]
 
-const ATALHOS_VALOR = [
-  { label: '1,5k', valor: 150000 },
-  { label: '2k',   valor: 200000 },
-  { label: '2,5k', valor: 250000 },
+// Botões que DEFINEM o valor (substituem o que há no campo)
+const DEFINIR_VALOR = [
+  { label: '1,5k', centavos: 150000 },
+  { label: '2k',   centavos: 200000 },
+  { label: '2,5k', centavos: 250000 },
+  { label: '3k',   centavos: 300000 },
 ]
 
 const ATALHOS_CAMPO = [
@@ -54,9 +56,16 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
     set('valor_cache', formatarMoeda(String(atual + EXTRA_CENTAVOS)))
   }
 
-  const aplicarAtalho = (centavos) => {
+  // Define o valor exato (substitui o campo)
+  const definirValor = (centavos) => {
+    set('valor_cache', formatarMoeda(String(centavos)))
+  }
+
+  // Ajuste fino: soma ou subtrai (mínimo R$ 0)
+  const ajustarValor = (delta) => {
     const atual = Math.round(limparMoeda(values.valor_cache) * 100)
-    set('valor_cache', formatarMoeda(String(atual + centavos)))
+    const novo = Math.max(0, atual + delta)
+    set('valor_cache', formatarMoeda(String(novo)))
   }
 
   const zerarValor = () => set('valor_cache', '')
@@ -285,20 +294,54 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
 
           {errors.valor_cache && <p className="text-red-400 text-xs mt-1.5 font-body">Campo obrigatório</p>}
 
+          {/* Linha 1: define o valor exato com 1 toque */}
           <div className="flex gap-2 mt-2">
-            {ATALHOS_VALOR.map(({ label, valor }) => (
-              <button
-                key={label}
-                type="button"
-                onClick={() => aplicarAtalho(valor)}
-                className="flex-1 py-2 rounded-lg border font-bold font-body text-xs
-                  transition-all active:scale-95 select-none
-                  border-stage-500 text-gray-500 hover:border-gold-600 hover:text-gold-400 bg-stage-700"
-              >
-                +{label}
-              </button>
-            ))}
+            {DEFINIR_VALOR.map(({ label, centavos }) => {
+              const ativo = Math.round(limparMoeda(values.valor_cache) * 100) === centavos
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => definirValor(centavos)}
+                  className={`flex-1 py-2 rounded-lg border font-bold font-body text-xs
+                    transition-all active:scale-95 select-none
+                    ${ativo
+                      ? 'bg-gold-500/20 border-gold-500 text-gold-400'
+                      : 'border-stage-500 text-gray-500 hover:border-gold-600 hover:text-gold-400 bg-stage-700'
+                    }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
           </div>
+
+          {/* Linha 2: ajuste fino de ±100 — aparece só quando há valor */}
+          {temValor && (
+            <div className="flex items-center gap-2 mt-1.5 animate-fade-in">
+              <span className="text-gray-600 font-body select-none" style={{ fontSize: 11 }}>ajuste</span>
+              <button
+                type="button"
+                onClick={() => ajustarValor(-10000)}
+                className="flex-1 py-1.5 rounded-lg border border-stage-500 bg-stage-700
+                  text-gray-500 hover:border-red-500/50 hover:text-red-400
+                  font-bold font-body transition-all active:scale-95 select-none"
+                style={{ fontSize: 12 }}
+              >
+                −100
+              </button>
+              <button
+                type="button"
+                onClick={() => ajustarValor(10000)}
+                className="flex-1 py-1.5 rounded-lg border border-stage-500 bg-stage-700
+                  text-gray-500 hover:border-gold-600 hover:text-gold-400
+                  font-bold font-body transition-all active:scale-95 select-none"
+                style={{ fontSize: 12 }}
+              >
+                +100
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Backline ──────────────────────────────────────── */}
