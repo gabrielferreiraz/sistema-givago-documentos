@@ -5,6 +5,7 @@ import FormOrcamento from './components/FormOrcamento'
 import FormContrato from './components/FormContrato'
 import LoadingState from './components/LoadingState'
 import ResultadoPDF from './components/ResultadoPDF'
+import IOSInstallPrompt from './components/IOSInstallPrompt'
 
 // ─── Estado inicial de cada tipo de documento ─────────────────────────────────
 // Definido fora do componente para não recriar a cada render.
@@ -186,6 +187,9 @@ export default function App() {
       <footer className="py-3 text-center border-t border-stage-700/50">
         <p className="text-gray-700 text-xs font-body">Givago &copy; {new Date().getFullYear()}</p>
       </footer>
+
+      {/* Banner de instalação — só aparece no iOS fora do modo standalone */}
+      <IOSInstallPrompt />
     </div>
   )
 }

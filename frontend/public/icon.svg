@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fundo escuro com cantos arredondados -->
+  <rect width="512" height="512" rx="112" fill="#0f0f13"/>
+  <!-- Nota musical dourada centralizada -->
+  <path d="M272 96v221.1c-13.2-7.6-28.7-12.1-45.3-12.1C181.5 305 146 340.5 146 384s35.5 79 80.7 79S307 418.5 307 375V176h90V96H272z" fill="#d97706"/>
+</svg>

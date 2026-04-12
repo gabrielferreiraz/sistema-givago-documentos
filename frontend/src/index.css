@@ -3,6 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  /* iOS PWA: previne ajuste automático de tamanho de texto e tap highlight azul */
+  html {
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+
+  body {
+    /* Previne o bounce scroll elástico do iOS no modo PWA */
+    overscroll-behavior-y: none;
+    /* Remove o highlight azul padrão ao tocar em elementos */
+    -webkit-tap-highlight-color: transparent;
+  }
+
   /* Previne zoom automático no iOS ao focar inputs (requer font-size >= 16px) */
   input, select, textarea {
     font-size: 16px;

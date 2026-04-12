@@ -2,17 +2,34 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Givago — Gerador de Documentos</title>
     <meta name="description" content="Sistema interno de geração de orçamentos e contratos" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23f59e0b' d='M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z'/></svg>" />
+
+    <!-- PWA / Theme -->
+    <meta name="theme-color" content="#0f0f13" />
+
+    <!-- iOS PWA: permite instalar como app na tela inicial -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- black-translucent: status bar sobrepõe o app (usa a cor do header) -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Givago" />
+
+    <!-- Ícone para iOS (apple-touch-icon) — usado ao adicionar à tela inicial -->
+    <link rel="apple-touch-icon" href="/icon.svg" />
+
+    <!-- Favicon padrão -->
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400&display=swap"
       rel="stylesheet"
     />
+
     <style>
       * { box-sizing: border-box; }
       html { scroll-behavior: smooth; }
@@ -23,11 +40,7 @@
         font-family: 'Lato', system-ui, sans-serif;
         -webkit-font-smoothing: antialiased;
       }
-      #root { min-height: 100vh; }
-      /* Scrollbar customizada */
-      ::-webkit-scrollbar { width: 6px; }
-      ::-webkit-scrollbar-track { background: #0d0d1a; }
-      ::-webkit-scrollbar-thumb { background: #d97706; border-radius: 3px; }
+      #root { min-height: 100vh; min-height: 100dvh; }
     </style>
   </head>
   <body>
