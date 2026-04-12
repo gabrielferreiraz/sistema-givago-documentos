@@ -302,7 +302,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
 
           {errors.valor_cache && <p className="text-red-400 text-xs mt-1.5 font-body">Campo obrigatório</p>}
 
-          {/* Linha 1: define o valor exato com 1 toque */}
+          {/* Linha 1: soma ao valor atual com 1 toque */}
           <div className="flex gap-2 mt-2">
             {DEFINIR_VALOR.map(({ label, centavos }) => {
               const ativo = Math.round(limparMoeda(values.valor_cache) * 100) === centavos
@@ -310,7 +310,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
                 <button
                   key={label}
                   type="button"
-                  onClick={() => definirValor(centavos)}
+                  onClick={() => ajustarValor(centavos)}
                   className={`flex-1 py-2 rounded-lg border font-bold font-body text-xs
                     transition-all active:scale-95 select-none
                     ${ativo
