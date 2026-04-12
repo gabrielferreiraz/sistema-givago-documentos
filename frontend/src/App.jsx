@@ -22,7 +22,9 @@ function orcamentoInicial() {
     horas: '2',
     valor_cache: '',
     backline: '',
+    backline_modo: 'vazio',
     transporte: '',
+    transporte_modo: 'vazio',
     incluir_horario: false,
     horario: '',
   }

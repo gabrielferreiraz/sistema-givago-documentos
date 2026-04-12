@@ -7,21 +7,21 @@
    gray-* usa hex direto (não usa opacidade nos componentes).
    ─────────────────────────────────────────────────────────────────────────── */
 
-/* Tema claro (padrão — respeitado quando o sistema do usuário está no claro) */
+/* Tema claro — paleta quente (papel / premium) */
 :root {
-  --c-stage-900: 245 245 250;   /* página: quase branco */
-  --c-stage-800: 255 255 255;   /* card: branco */
-  --c-stage-700: 232 232 242;   /* tabs / fundo sutil */
-  --c-stage-600: 241 241 250;   /* input bg */
-  --c-stage-500: 205 205 228;   /* bordas */
+  --c-stage-900: 245 242 237;   /* página: off-white quente */
+  --c-stage-800: 255 254 252;   /* card: branco quente */
+  --c-stage-700: 235 231 224;   /* tabs / header */
+  --c-stage-600: 249 247 244;   /* input bg */
+  --c-stage-500: 214 208 198;   /* bordas */
 
-  --c-gray-100: #1a1a2e;        /* texto principal */
-  --c-gray-200: #2e2e48;
-  --c-gray-300: #4a4a68;
-  --c-gray-400: #6e6e90;        /* rótulos, texto secundário */
-  --c-gray-500: #9898b8;        /* placeholder */
-  --c-gray-600: #c0c0d8;        /* muito sutil */
-  --c-gray-700: #d8d8ec;        /* quase invisível */
+  --c-gray-100: #1c1917;        /* texto principal: quase preto quente */
+  --c-gray-200: #292524;
+  --c-gray-300: #44403c;
+  --c-gray-400: #78716c;        /* rótulos, labels */
+  --c-gray-500: #a8a29e;        /* placeholder */
+  --c-gray-600: #d6d0c8;        /* divisores */
+  --c-gray-700: #e8e4de;        /* quase invisível */
 }
 
 /* Tema escuro */
@@ -139,12 +139,35 @@
   }
 }
 
-/* ─── text-white adaptável ao tema ──────────────────────────────────────────
-   No tema claro, .text-white (usado em headings) vira texto escuro
-   automaticamente — sem tocar nos componentes.
-   Em fundos coloridos (botão verde, ícone de erro), o contraste se mantém
-   pois esses backgrounds são sempre escuros/saturados.
+/* ─── Adaptações globais para tema claro ────────────────────────────────────
+   Sem tocar nos componentes: as classes do Tailwind são mantidas,
+   o CSS sobrescreve o que precisa mudar no tema claro.
    ─────────────────────────────────────────────────────────────────────────── */
+
+/* text-white em headings vira texto escuro */
 :root:not(.dark) .text-white {
   color: var(--c-gray-100);
+}
+
+/* Sombra no card no tema claro (escuro já tem fundo suficientemente contrastado) */
+:root:not(.dark) .card {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
+}
+
+/* Input: borda mais visível e sombra interna sutil no claro */
+:root:not(.dark) .input-field {
+  border-color: rgb(var(--c-stage-500));
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Botão secundário: borda mais definida no claro */
+:root:not(.dark) .btn-secondary {
+  border-color: rgb(var(--c-stage-500));
+  color: var(--c-gray-300);
+}
+
+/* Header e rodapé: borda mais visível no claro */
+:root:not(.dark) header,
+:root:not(.dark) footer {
+  border-color: rgb(var(--c-stage-500));
 }

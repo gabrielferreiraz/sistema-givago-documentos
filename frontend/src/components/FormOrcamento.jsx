@@ -14,6 +14,7 @@ import {
 } from '../utils/historico'
 
 const CAMPOS_OBRIGATORIOS = ['nome', 'evento', 'local_evento', 'data_evento', 'horas', 'valor_cache']
+// backline e transporte têm validação própria (modo !== 'vazio')
 
 const OPCOES_HORAS = [1, 2, 3]
 
@@ -85,6 +86,13 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
   const handleSubmit = async (e) => {
     e.preventDefault()
     const erros = validarCampos(values, CAMPOS_OBRIGATORIOS)
+
+    // Valida campos opcionais obrigatórios
+    if (values.backline_modo === 'vazio') erros.backline = true
+    if (values.backline_modo === 'valor' && !values.backline) erros.backline = true
+    if (values.transporte_modo === 'vazio') erros.transporte = true
+    if (values.transporte_modo === 'valor' && !values.transporte) erros.transporte = true
+
     if (Object.keys(erros).length > 0) {
       setErrors(erros)
       document.getElementById(Object.keys(erros)[0])
@@ -350,6 +358,9 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
           label="Backline"
           value={values.backline}
           onChange={v => set('backline', v)}
+          modo={values.backline_modo}
+          onModoChange={m => set('backline_modo', m)}
+          error={errors.backline}
         />
 
         {/* ── Transporte ────────────────────────────────────── */}
@@ -358,6 +369,9 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
           label="Transporte"
           value={values.transporte}
           onChange={v => set('transporte', v)}
+          modo={values.transporte_modo}
+          onModoChange={m => set('transporte_modo', m)}
+          error={errors.transporte}
         />
 
         {/* ── Número ────────────────────────────────────────── */}
@@ -463,28 +477,33 @@ function HistoricoRecente({ historico, onUsarNovamente, onRemover }) {
 
 // ─── CampoOpcional ────────────────────────────────────────────────────────────
 
-function CampoOpcional({ id, label, value, onChange }) {
-  const [modo, setModo] = useState('vazio')
-
+function CampoOpcional({ id, label, value, onChange, modo, onModoChange, error }) {
   const selecionarModo = (novoModo) => {
     if (novoModo === modo) {
-      setModo('vazio'); onChange('')
+      onModoChange('vazio'); onChange('')
     } else if (novoModo === 'incluso') {
-      setModo('incluso'); onChange('incluso')
+      onModoChange('incluso'); onChange('incluso')
     } else {
-      setModo('valor'); onChange('')
+      onModoChange('valor'); onChange('')
     }
   }
 
   return (
-    <div className="mb-4">
+    <div className="mb-4" id={id}>
       <div className="flex items-center justify-between mb-2">
-        <label className="label mb-0">{label}</label>
-        <div className="flex bg-stage-700 rounded-lg p-0.5 gap-0.5">
-          <ToggleBtn active={modo === 'incluso'} onClick={() => selecionarModo(modo === 'incluso' ? 'vazio' : 'incluso')}>
+        <label className="label mb-0">
+          {label}
+          {error && modo === 'vazio' && (
+            <span className="ml-2 text-red-400 normal-case tracking-normal font-normal" style={{ fontSize: 11 }}>
+              — obrigatório
+            </span>
+          )}
+        </label>
+        <div className={`flex bg-stage-700 rounded-lg p-0.5 gap-0.5 transition-colors ${error && modo === 'vazio' ? 'ring-1 ring-red-500/50' : ''}`}>
+          <ToggleBtn active={modo === 'incluso'} onClick={() => selecionarModo('incluso')}>
             Incluso
           </ToggleBtn>
-          <ToggleBtn active={modo === 'valor'} onClick={() => selecionarModo(modo === 'valor' ? 'vazio' : 'valor')}>
+          <ToggleBtn active={modo === 'valor'} onClick={() => selecionarModo('valor')}>
             Informar valor
           </ToggleBtn>
         </div>
@@ -493,8 +512,8 @@ function CampoOpcional({ id, label, value, onChange }) {
       {modo === 'valor' && (
         <div className="relative animate-fade-in">
           <input
-            id={id}
-            className="input-field font-mono text-gold-400"
+            id={`${id}_input`}
+            className={`input-field font-mono text-gold-400 ${error && !value ? 'border-red-500' : ''}`}
             style={{ paddingRight: value ? '7rem' : '5.5rem' }}
             value={value}
             onChange={e => onChange(formatarMoeda(e.target.value))}
@@ -504,9 +523,9 @@ function CampoOpcional({ id, label, value, onChange }) {
             autoFocus
           />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            {ATALHOS_CAMPO.map(({ label, centavos }) => (
+            {ATALHOS_CAMPO.map(({ label: lbl, centavos }) => (
               <button
-                key={label}
+                key={lbl}
                 type="button"
                 onClick={() => {
                   const atual = Math.round(limparMoeda(value) * 100)
@@ -516,7 +535,7 @@ function CampoOpcional({ id, label, value, onChange }) {
                   font-bold font-body transition-colors active:scale-90 select-none"
                 style={{ fontSize: 11 }}
               >
-                +{label}
+                +{lbl}
               </button>
             ))}
             {value && (
@@ -533,6 +552,9 @@ function CampoOpcional({ id, label, value, onChange }) {
               </button>
             )}
           </div>
+          {error && !value && (
+            <p className="text-red-400 text-xs mt-1.5 font-body">Informe o valor</p>
+          )}
         </div>
       )}
 
