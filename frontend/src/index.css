@@ -2,21 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Variáveis de tema ──────────────────────────────────────────────────────
+   stage-* usa RGB triplets (sem #) para suportar bg-stage-800/90 etc.
+   gray-* usa hex direto (não usa opacidade nos componentes).
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Tema claro (padrão — respeitado quando o sistema do usuário está no claro) */
+:root {
+  --c-stage-900: 245 245 250;   /* página: quase branco */
+  --c-stage-800: 255 255 255;   /* card: branco */
+  --c-stage-700: 232 232 242;   /* tabs / fundo sutil */
+  --c-stage-600: 241 241 250;   /* input bg */
+  --c-stage-500: 205 205 228;   /* bordas */
+
+  --c-gray-100: #1a1a2e;        /* texto principal */
+  --c-gray-200: #2e2e48;
+  --c-gray-300: #4a4a68;
+  --c-gray-400: #6e6e90;        /* rótulos, texto secundário */
+  --c-gray-500: #9898b8;        /* placeholder */
+  --c-gray-600: #c0c0d8;        /* muito sutil */
+  --c-gray-700: #d8d8ec;        /* quase invisível */
+}
+
+/* Tema escuro */
+.dark {
+  --c-stage-900: 6 6 13;        /* #06060d */
+  --c-stage-800: 13 13 26;      /* #0d0d1a */
+  --c-stage-700: 20 20 38;      /* #141426 */
+  --c-stage-600: 28 28 53;      /* #1c1c35 */
+  --c-stage-500: 37 37 69;      /* #252545 */
+
+  --c-gray-100: #f1f0ee;
+  --c-gray-200: #d4d2ce;
+  --c-gray-300: #b8b5b0;
+  --c-gray-400: #8a877f;
+  --c-gray-500: #5c5a54;
+  --c-gray-600: #3d3b36;
+  --c-gray-700: #2a2825;
+}
+
+/* ─── Base global ────────────────────────────────────────────────────────── */
+
 @layer base {
-  /* iOS PWA: previne ajuste automático de tamanho de texto e tap highlight azul */
   html {
     -webkit-text-size-adjust: 100%;
     touch-action: manipulation;
+    /* cor de fundo do html sincronizada — evita flash de cor ao scrollar além da página */
+    background-color: rgb(var(--c-stage-900));
   }
 
   body {
-    /* Previne o bounce scroll elástico do iOS no modo PWA */
+    background-color: rgb(var(--c-stage-900));
+    color: var(--c-gray-100);
     overscroll-behavior-y: none;
-    /* Remove o highlight azul padrão ao tocar em elementos */
     -webkit-tap-highlight-color: transparent;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Previne zoom automático no iOS ao focar inputs (requer font-size >= 16px) */
+  /* Previne zoom automático no iOS ao focar inputs (font-size >= 16px) */
   input, select, textarea {
     font-size: 16px;
   }
@@ -27,36 +70,33 @@
     margin: 0;
   }
 
-  /* Estilo correto para inputs preenchidos pelo browser (autofill) */
+  /* Autofill: usa variáveis para adaptar ao tema */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 100px #1c1c35 inset;
-    -webkit-text-fill-color: #f1f0ee;
+    -webkit-box-shadow: 0 0 0 100px rgb(var(--c-stage-600)) inset;
+    -webkit-text-fill-color: var(--c-gray-100);
     caret-color: #f59e0b;
   }
 
-  /* Scrollbar customizada — só visível no desktop */
+  /* Scrollbar customizada */
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #0d0d1a; }
+  ::-webkit-scrollbar-track { background: rgb(var(--c-stage-900)); }
   ::-webkit-scrollbar-thumb { background: #d97706; border-radius: 3px; }
-
-  /* Safe area para dispositivos com notch/home bar */
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
 }
 
+/* ─── Componentes ────────────────────────────────────────────────────────── */
+
 @layer components {
-  /* Input: altura mínima 52px para toque confortável, font-size 16px fixa */
   .input-field {
-    @apply w-full bg-stage-600 border border-stage-500 text-gray-100 rounded-xl
+    @apply w-full bg-stage-600 border border-stage-500 rounded-xl
            px-4 py-3.5
            placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1
            focus:ring-gold-500 transition-colors font-body;
-    font-size: 16px; /* garante sem zoom no iOS */
+    color: var(--c-gray-100);
+    font-size: 16px;
     min-height: 52px;
-    line-height: 1.5; /* neutro — textarea sobrescreve via style inline */
+    line-height: 1.5;
   }
 
   .input-field:disabled {
@@ -64,30 +104,47 @@
   }
 
   .label {
-    @apply block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2;
+    @apply block text-xs font-bold uppercase tracking-widest mb-2;
+    color: var(--c-gray-400);
   }
 
-  /* Botão primário: mínimo 52px de altura, fonte 16px no mobile */
+  /* Botão primário: texto sempre escuro para contraste no fundo dourado */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 bg-gold-500 hover:bg-gold-400
-           active:bg-gold-600 text-stage-900 font-bold px-6 rounded-xl
+           active:bg-gold-600 font-bold px-6 rounded-xl
            transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed font-body tracking-wide
            active:scale-95 select-none;
+    color: #1a1a2e; /* fixo — contraste garantido sobre ouro em qualquer tema */
     font-size: 16px;
     min-height: 52px;
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 border border-stage-500
-           hover:border-gold-600 active:border-gold-500 text-gray-300 hover:text-gold-400
+           hover:border-gold-600 active:border-gold-500
            font-bold px-6 rounded-xl transition-all duration-150 font-body tracking-wide
            active:scale-95 bg-stage-700 select-none;
+    color: var(--c-gray-300);
     font-size: 16px;
     min-height: 52px;
   }
 
-  .card {
-    @apply bg-stage-800 border border-stage-600 rounded-2xl;
+  .btn-secondary:hover {
+    color: #f59e0b; /* gold-500 */
   }
+
+  .card {
+    @apply bg-stage-800 border border-stage-500 rounded-2xl;
+  }
+}
+
+/* ─── text-white adaptável ao tema ──────────────────────────────────────────
+   No tema claro, .text-white (usado em headings) vira texto escuro
+   automaticamente — sem tocar nos componentes.
+   Em fundos coloridos (botão verde, ícone de erro), o contraste se mantém
+   pois esses backgrounds são sempre escuros/saturados.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root:not(.dark) .text-white {
+  color: var(--c-gray-100);
 }

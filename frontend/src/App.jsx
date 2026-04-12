@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { gerarNumeroDoc, hoje } from './utils/form'
 import { gerarDocumento } from './utils/api'
+import { useTheme } from './utils/useTheme'
 import FormOrcamento from './components/FormOrcamento'
 import FormContrato from './components/FormContrato'
 import LoadingState from './components/LoadingState'
@@ -50,6 +51,8 @@ function contratoInicial() {
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const { isDark, alternar: alternarTema } = useTheme()
+
   // Tipo ativo: 'orcamento' | 'contrato'
   const [tipoAtivo, setTipoAtivo] = useState('orcamento')
 
@@ -133,9 +136,12 @@ export default function App() {
       >
         <div className="max-w-2xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
           <Logo />
-          {showTabs && (
-            <TipoTabs ativo={tipoAtivo} onSwitch={handleSwitchTipo} />
-          )}
+          <div className="flex items-center gap-2">
+            {showTabs && (
+              <TipoTabs ativo={tipoAtivo} onSwitch={handleSwitchTipo} />
+            )}
+            <ThemeToggle isDark={isDark} onToggle={alternarTema} />
+          </div>
         </div>
       </header>
 
@@ -227,6 +233,31 @@ function TipoTabs({ ativo, onSwitch }) {
         </button>
       ))}
     </div>
+  )
+}
+
+function ThemeToggle({ isDark, onToggle }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+      className="w-9 h-9 flex items-center justify-center rounded-xl
+        bg-stage-700 border border-stage-500
+        hover:border-gold-600 transition-colors active:scale-95 select-none shrink-0"
+    >
+      {isDark ? (
+        /* Sol — clica para ir ao tema claro */
+        <svg className="w-4 h-4 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 4.5a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0112 4.5zM12 17.25a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75zM4.5 12a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5A.75.75 0 014.5 12zM17.25 12a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zM6.697 7.757a.75.75 0 011.06-1.06l1.06 1.06a.75.75 0 11-1.06 1.061L6.697 7.757zM15.182 15.182a.75.75 0 011.061-1.06l1.06 1.06a.75.75 0 01-1.06 1.06l-1.061-1.06zM7.757 16.243a.75.75 0 01-1.06-1.061l1.06-1.06a.75.75 0 011.061 1.06l-1.06 1.061zM16.243 7.757a.75.75 0 01-1.061-1.06l1.06-1.061a.75.75 0 011.061 1.06l-1.06 1.061zM12 8.25a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5z"/>
+        </svg>
+      ) : (
+        /* Lua — clica para ir ao tema escuro */
+        <svg className="w-4 h-4 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
+          <path fillRule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clipRule="evenodd"/>
+        </svg>
+      )}
+    </button>
   )
 }
 

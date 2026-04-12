@@ -12,15 +12,24 @@
 
     <!-- iOS PWA: permite instalar como app na tela inicial -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <!-- black-translucent: status bar sobrepõe o app (usa a cor do header) -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Givago" />
-
-    <!-- Ícone para iOS (apple-touch-icon) — usado ao adicionar à tela inicial -->
     <link rel="apple-touch-icon" href="/icon.svg" />
-
-    <!-- Favicon padrão -->
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+
+    <!--
+      Anti-flash de tema: aplica .dark no <html> ANTES do React renderizar,
+      evitando piscar de tema errado ao carregar a página.
+      Respeita: 1) preferência manual salva; 2) preferência do sistema operacional.
+    -->
+    <script>
+      (function () {
+        var salvo = localStorage.getItem('givago_theme');
+        var sistema = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var escuro = salvo !== null ? salvo === 'dark' : sistema;
+        if (escuro) document.documentElement.classList.add('dark');
+      })();
+    </script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,8 +44,6 @@
       html { scroll-behavior: smooth; }
       body {
         margin: 0;
-        background-color: #06060d;
-        color: #f1f0ee;
         font-family: 'Lato', system-ui, sans-serif;
         -webkit-font-smoothing: antialiased;
       }

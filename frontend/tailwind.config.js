@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  // 'class' strategy: aplica/remove a classe .dark no <html> via JS
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -11,12 +13,24 @@ export default {
           600: '#d97706',
           700: '#b45309',
         },
+        // stage-* usa variáveis CSS com RGB triplets para suportar opacidade
+        // ex: bg-stage-800/90 → rgb(var(--c-stage-800) / 0.9)
         stage: {
-          900: '#06060d',
-          800: '#0d0d1a',
-          700: '#141426',
-          600: '#1c1c35',
-          500: '#252545',
+          900: 'rgb(var(--c-stage-900) / <alpha-value>)',
+          800: 'rgb(var(--c-stage-800) / <alpha-value>)',
+          700: 'rgb(var(--c-stage-700) / <alpha-value>)',
+          600: 'rgb(var(--c-stage-600) / <alpha-value>)',
+          500: 'rgb(var(--c-stage-500) / <alpha-value>)',
+        },
+        // gray-* usa variáveis CSS — valores invertidos no tema claro
+        gray: {
+          100: 'var(--c-gray-100)',
+          200: 'var(--c-gray-200)',
+          300: 'var(--c-gray-300)',
+          400: 'var(--c-gray-400)',
+          500: 'var(--c-gray-500)',
+          600: 'var(--c-gray-600)',
+          700: 'var(--c-gray-700)',
         },
       },
       fontFamily: {
