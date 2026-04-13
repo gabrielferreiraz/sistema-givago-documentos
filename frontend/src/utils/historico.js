@@ -65,7 +65,7 @@ export function removerLocal(local) {
   localStorage.setItem(KEY_LOCAIS, JSON.stringify(salvos.filter(l => l !== local)))
 }
 
-// ─── Eventos fixos ────────────────────────────────────────────────────────────
+// ─── Eventos ─────────────────────────────────────────────────────────────────
 
 export const EVENTOS_FIXOS = [
   'Aniversário',
@@ -80,3 +80,29 @@ export const EVENTOS_FIXOS = [
   'Batizado',
   'Evento Religioso',
 ]
+
+const KEY_EVENTOS = 'givago_eventos'
+
+export function carregarEventos() {
+  try {
+    const salvos = JSON.parse(localStorage.getItem(KEY_EVENTOS) || '[]')
+    const todos = [...EVENTOS_FIXOS]
+    salvos.forEach(e => { if (!todos.includes(e)) todos.push(e) })
+    return { todos, salvos }
+  } catch {
+    return { todos: EVENTOS_FIXOS, salvos: [] }
+  }
+}
+
+export function salvarEvento(evento) {
+  const { salvos } = carregarEventos()
+  const trimmed = evento.trim()
+  if (trimmed && !salvos.includes(trimmed)) {
+    localStorage.setItem(KEY_EVENTOS, JSON.stringify([...salvos, trimmed]))
+  }
+}
+
+export function removerEvento(evento) {
+  const { salvos } = carregarEventos()
+  localStorage.setItem(KEY_EVENTOS, JSON.stringify(salvos.filter(e => e !== evento)))
+}

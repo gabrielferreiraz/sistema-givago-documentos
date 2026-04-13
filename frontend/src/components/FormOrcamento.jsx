@@ -3,8 +3,9 @@ import { validarCampos, formatarMoeda, limparMoeda, formatarDataBR } from '../ut
 import { SpinnerIcon, PDFIcon } from './icons'
 import AutocompleteInput from './AutocompleteInput'
 import {
-  EVENTOS_FIXOS,
-  LOCAIS_FIXOS,
+  carregarEventos,
+  salvarEvento,
+  removerEvento,
   carregarLocais,
   salvarLocal,
   removerLocal,
@@ -39,7 +40,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
-  // Locais — recarrega do localStorage sempre que necessário
+  const [eventosState, setEventosState] = useState(() => carregarEventos())
   const [locaisState, setLocaisState] = useState(() => carregarLocais())
   const [historico, setHistorico] = useState(() => carregarHistorico())
 
@@ -70,6 +71,17 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
   }
 
   const zerarValor = () => set('valor_cache', '')
+
+  // ── Eventos ─────────────────────────────────────────────────────────────────
+  const handleSalvarEvento = useCallback((evento) => {
+    salvarEvento(evento)
+    setEventosState(carregarEventos())
+  }, [])
+
+  const handleDeletarEvento = useCallback((evento) => {
+    removerEvento(evento)
+    setEventosState(carregarEventos())
+  }, [])
 
   // ── Locais ──────────────────────────────────────────────────────────────────
   const handleSalvarLocal = useCallback((local) => {
@@ -137,7 +149,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
           />
         </Field>
 
-        {/* ── Evento (autocomplete fixo) ────────────────────── */}
+        {/* ── Evento (autocomplete + salvar) ───────────────── */}
         <Field id="evento" label="Evento" error={errors.evento}>
           <AutocompleteInput
             id="evento"
@@ -145,7 +157,10 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
             onChange={v => set('evento', v)}
             placeholder="Ex: Casamento, Aniversário..."
             error={errors.evento}
-            opcoes={EVENTOS_FIXOS}
+            opcoes={eventosState.todos}
+            opcoesExtras={eventosState.salvos}
+            onSalvar={handleSalvarEvento}
+            onDeletar={handleDeletarEvento}
           />
         </Field>
 
