@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ['icon.svg', 'icon-pwa.png'],
       manifest: {
         name: 'Givago',
         short_name: 'Givago',
@@ -20,22 +20,22 @@ export default defineConfig({
         scope: '/',
         icons: [
           {
-            src: 'icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: 'icon-pwa.png',
+            sizes: '512x512',
+            type: 'image/png',
             purpose: 'any',
           },
           {
-            src: 'icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: 'icon-pwa.png',
+            sizes: '512x512',
+            type: 'image/png',
             purpose: 'maskable',
           },
         ],
       },
       workbox: {
         // Cacheia todos os assets estáticos gerados pelo Vite
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // Não cacheia chamadas ao webhook N8N
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/webhook/],
