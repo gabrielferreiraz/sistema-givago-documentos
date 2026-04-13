@@ -1,4 +1,4 @@
-import { formatarDataBR, limparMoeda } from './form'
+import { formatarDataBR, limparMoeda, hoje } from './form'
 
 /**
  * Tempo máximo de espera pela resposta do N8N + Gotenberg.
@@ -66,6 +66,96 @@ export async function gerarDocumento({ tipo, formData }) {
   } finally {
     clearTimeout(timer)
   }
+}
+
+/**
+ * Gera contrato a partir dos dados do orçamento + campos extras.
+ * Endpoint: /givago-contrato (derivado da URL do orçamento automaticamente).
+ */
+export async function gerarContrato({ orcamentoData, extraData }) {
+  const orcUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || ''
+  const webhookUrl = import.meta.env.VITE_N8N_CONTRACT_WEBHOOK_URL ||
+    orcUrl.replace(/\/([^/]+)$/, '/givago-contrato')
+  const token = import.meta.env.VITE_N8N_WEBHOOK_TOKEN
+
+  if (!webhookUrl || !webhookUrl.startsWith('http')) {
+    const err = new Error('URL do webhook de contrato não configurada.')
+    err.code = 'config'
+    throw err
+  }
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: token } : {}),
+      },
+      body: JSON.stringify(buildContratoPayload(orcamentoData, extraData)),
+      signal: controller.signal,
+    })
+
+    if (!response.ok) {
+      const texto = await response.text().catch(() => '')
+      const err = new Error(`O servidor retornou erro ${response.status}. ${texto}`.trim())
+      err.code = 'server'
+      err.status = response.status
+      throw err
+    }
+
+    const data = await response.json()
+    if (data.status !== 'success') {
+      const err = new Error('Erro ao gerar o contrato.')
+      err.code = 'server'
+      throw err
+    }
+
+    return data
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      const timeout = new Error(`Tempo limite de ${TIMEOUT_MS / 1000}s atingido.`)
+      timeout.code = 'timeout'
+      throw timeout
+    }
+    if (!err.code) err.code = 'network'
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+function buildContratoPayload(orc, extra) {
+  const valor = limparMoeda(orc.valor_cache)
+  const payload = {
+    tipo: 'contrato',
+    nome: orc.nome,
+    cpf: extra.cpf,
+    rg: extra.rg,
+    endereco: extra.endereco,
+    evento: orc.evento,
+    data_evento: orc.data_evento,
+    data_evento_br: formatarDataBR(orc.data_evento),
+    local_evento: orc.local_evento,
+    horas: orc.horas,
+    valor_cache: valor,
+    valor_cache_formatado: valor.toLocaleString('pt-BR', {
+      style: 'currency', currency: 'BRL', minimumFractionDigits: 2,
+    }),
+    data_assinatura_br: formatarDataBR(extra.data_assinatura || hoje()),
+  }
+
+  if (orc.backline === 'incluso') payload.backline = 'incluso'
+  else if (orc.backline) payload.backline = limparMoeda(orc.backline)
+
+  if (orc.transporte === 'incluso') payload.transporte = 'incluso'
+  else if (orc.transporte) payload.transporte = limparMoeda(orc.transporte)
+
+  if (orc.incluir_horario && orc.horario) payload.horario = orc.horario
+
+  return payload
 }
 
 /**

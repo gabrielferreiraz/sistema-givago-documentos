@@ -67,6 +67,7 @@ export default function App() {
   // Estado da tela: 'form' | 'loading' | 'result' | 'error'
   const [tela, setTela] = useState('form')
   const [result, setResult] = useState(null)
+  const [lastOrcamentoData, setLastOrcamentoData] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [errorCode, setErrorCode] = useState('')
 
@@ -95,6 +96,7 @@ export default function App() {
     try {
       const data = await gerarDocumento({ tipo: tipoAtivo, formData })
       setResult(data)
+      if (tipoAtivo === 'orcamento') setLastOrcamentoData(formData)
       setTela('result')
 
       // Reseta o formulário preenchido e gera novo número para o próximo
@@ -180,6 +182,7 @@ export default function App() {
             result={result}
             documentType={tipoAtivo}
             onNewDocument={handleNovoDocumento}
+            orcamentoData={tipoAtivo === 'orcamento' ? lastOrcamentoData : null}
           />
         )}
 
