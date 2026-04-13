@@ -26,12 +26,12 @@ export default function ResultadoPDF({ result, documentType, onNewDocument }) {
         <div className="flex items-center justify-center gap-2 text-green-400 mb-8">
           <WhatsAppIcon />
           <span className="font-body font-bold" style={{ fontSize: 15 }}>
-            Enviado para o WhatsApp do Givago.
+            Enviado para o WhatsApp.
           </span>
         </div>
 
         <a
-          href="https://wa.me/5567981328096"
+          href="https://wa.me/556796921144"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2 w-full mb-3 rounded-xl font-bold font-body

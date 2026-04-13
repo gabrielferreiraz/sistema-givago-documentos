@@ -240,7 +240,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
                       ? 'bg-gold-500 border-gold-500 text-stage-900'
                       : 'border-stage-500 text-gray-400 hover:border-gold-600 hover:text-gray-200 bg-stage-700'
                     }`}
-                  style={{ minHeight: 52, fontSize: 15 }}
+                  style={{ minHeight: 56, fontSize: 16 }}
                 >
                   {h}h
                   {ehPadrao && !ativo && (
@@ -311,7 +311,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
                   key={label}
                   type="button"
                   onClick={() => ajustarValor(centavos)}
-                  className={`flex-1 py-2 rounded-lg border font-bold font-body text-xs
+                  className={`flex-1 py-2.5 rounded-lg border font-bold font-body
                     transition-all active:scale-95 select-none
                     ${ativo
                       ? 'bg-gold-500/20 border-gold-500 text-gold-400'
@@ -334,7 +334,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
                 className="flex-1 py-1.5 rounded-lg border border-stage-500 bg-stage-700
                   text-gray-500 hover:border-red-500/50 hover:text-red-400
                   font-bold font-body transition-all active:scale-95 select-none"
-                style={{ fontSize: 12 }}
+                style={{ fontSize: 14 }}
               >
                 −100
               </button>
@@ -344,7 +344,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
                 className="flex-1 py-1.5 rounded-lg border border-stage-500 bg-stage-700
                   text-gray-500 hover:border-gold-600 hover:text-gold-400
                   font-bold font-body transition-all active:scale-95 select-none"
-                style={{ fontSize: 12 }}
+                style={{ fontSize: 14 }}
               >
                 +100
               </button>
@@ -579,7 +579,7 @@ function ToggleBtn({ active, onClick, children }) {
       onClick={onClick}
       className={`px-3 rounded-md font-bold font-body transition-all select-none active:scale-95
         ${active ? 'bg-gold-500 text-stage-900' : 'text-gray-400 hover:text-gray-200'}`}
-      style={{ fontSize: 12, minHeight: 32 }}
+      style={{ fontSize: 13, minHeight: 36 }}
     >
       {children}
     </button>

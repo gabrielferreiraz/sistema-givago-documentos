@@ -90,12 +90,12 @@
 @layer components {
   .input-field {
     @apply w-full bg-stage-600 border border-stage-500 rounded-xl
-           px-4 py-3.5
+           px-4 py-4
            placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1
            focus:ring-gold-500 transition-colors font-body;
     color: var(--c-gray-100);
     font-size: 16px;
-    min-height: 52px;
+    min-height: 56px;
     line-height: 1.5;
   }
 
@@ -104,7 +104,8 @@
   }
 
   .label {
-    @apply block text-xs font-bold uppercase tracking-widest mb-2;
+    @apply block font-bold uppercase tracking-widest mb-2;
+    font-size: 13px;
     color: var(--c-gray-400);
   }
 
@@ -116,8 +117,8 @@
            disabled:opacity-50 disabled:cursor-not-allowed font-body tracking-wide
            active:scale-95 select-none;
     color: #1a1a2e; /* fixo — contraste garantido sobre ouro em qualquer tema */
-    font-size: 16px;
-    min-height: 52px;
+    font-size: 17px;
+    min-height: 56px;
   }
 
   .btn-secondary {
@@ -126,8 +127,8 @@
            font-bold px-6 rounded-xl transition-all duration-150 font-body tracking-wide
            active:scale-95 bg-stage-700 select-none;
     color: var(--c-gray-300);
-    font-size: 16px;
-    min-height: 52px;
+    font-size: 17px;
+    min-height: 56px;
   }
 
   .btn-secondary:hover {
