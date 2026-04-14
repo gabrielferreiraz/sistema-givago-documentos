@@ -35,7 +35,9 @@ export default defineConfig({
       },
       workbox: {
         // Cacheia todos os assets estáticos gerados pelo Vite
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // PNGs (ícones grandes) ficam fora do precache — o browser os cacheia normalmente
+        globIgnores: ['**/*.png'],
         // Não cacheia chamadas ao webhook N8N
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/webhook/],
