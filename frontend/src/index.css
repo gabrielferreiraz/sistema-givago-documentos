@@ -47,8 +47,8 @@
   html {
     -webkit-text-size-adjust: 100%;
     touch-action: manipulation;
-    /* cor de fundo do html sincronizada — evita flash de cor ao scrollar além da página */
     background-color: rgb(var(--c-stage-900));
+    overflow-x: hidden; /* impede scroll horizontal em qualquer situação */
   }
 
   body {
@@ -57,6 +57,7 @@
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
     padding-bottom: env(safe-area-inset-bottom);
+    overflow-x: hidden;
   }
 
   /* Previne zoom automático no iOS ao focar inputs (font-size >= 16px) */

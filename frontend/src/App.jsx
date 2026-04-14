@@ -209,12 +209,12 @@ export default function App() {
 
 function Logo() {
   return (
-    <div className="shrink-0">
+    <div className="shrink-0" style={{ maxWidth: 140 }}>
       <img
         src="/logoGIVAGO NOBACK.png"
         alt="Givago"
-        className="object-contain"
-        style={{ height: 38 }}
+        className="object-contain w-full"
+        style={{ height: 52, maxWidth: 140 }}
         draggable={false}
       />
     </div>
