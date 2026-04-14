@@ -48,15 +48,22 @@
     -webkit-text-size-adjust: 100%;
     touch-action: manipulation;
     background-color: rgb(var(--c-stage-900));
-    overflow-x: hidden; /* impede scroll horizontal em qualquer situação */
+    max-width: 100%;
+    overflow-x: clip; /* clip é mais confiável que hidden no iOS Safari */
   }
 
   body {
     background-color: rgb(var(--c-stage-900));
     color: var(--c-gray-100);
-    overscroll-behavior-y: none;
+    overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     padding-bottom: env(safe-area-inset-bottom);
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  #root {
+    max-width: 100%;
     overflow-x: hidden;
   }
 

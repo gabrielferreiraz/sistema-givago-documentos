@@ -131,7 +131,7 @@ export default function App() {
   const showTabs = tela === 'form' || tela === 'loading'
 
   return (
-    <div className="min-h-screen bg-stage-900 flex flex-col">
+    <div className="min-h-screen bg-stage-900 flex flex-col" style={{ maxWidth: '100vw', overflowX: 'hidden' }}>
 
       {/* ── Header ──────────────────────────────────────────── */}
       <header
