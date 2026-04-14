@@ -83,8 +83,14 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
+const formatarCEP = (raw) => {
+  const d = raw.replace(/\D/g, '').slice(0, 8)
+  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d
+}
+
 function ModalContrato({ orcamentoData, onClose }) {
   const [fields, setFields] = useState({
+    cep: '',
     cpf: '',
     rg: '',
     endereco: '',
@@ -94,11 +100,41 @@ function ModalContrato({ orcamentoData, onClose }) {
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [sucesso, setSucesso] = useState(false)
+  const [cepLoading, setCepLoading] = useState(false)
+  const [cepErro, setCepErro] = useState('')
 
   const set = (field, value) => {
     setFields(prev => ({ ...prev, [field]: value }))
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: false }))
     if (errorMsg) setErrorMsg('')
+  }
+
+  const handleCEP = async (raw) => {
+    const formatted = formatarCEP(raw)
+    set('cep', formatted)
+    setCepErro('')
+
+    const digits = formatted.replace(/\D/g, '')
+    if (digits.length !== 8) return
+
+    setCepLoading(true)
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
+      const data = await res.json()
+      if (data.erro) {
+        setCepErro('CEP não encontrado.')
+        return
+      }
+      // Monta o endereço — usuário completa com número
+      const partes = [data.logradouro, data.bairro, `${data.localidade}/${data.uf}`, `CEP ${data.cep}`]
+      set('endereco', partes.filter(Boolean).join(', '))
+      // Limpa erro de endereço se havia
+      setErrors(prev => ({ ...prev, endereco: false }))
+    } catch {
+      setCepErro('Erro ao buscar CEP. Verifique sua conexão.')
+    } finally {
+      setCepLoading(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -180,6 +216,39 @@ function ModalContrato({ orcamentoData, onClose }) {
 
             <form onSubmit={handleSubmit} noValidate>
 
+              {/* CEP */}
+              <div className="mb-4">
+                <label className="label">CEP</label>
+                <div className="relative">
+                  <input
+                    className={`input-field font-mono pr-10 ${cepErro ? 'border-red-500' : ''}`}
+                    value={fields.cep}
+                    onChange={e => handleCEP(e.target.value)}
+                    placeholder="00000-000"
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    maxLength={9}
+                    autoFocus
+                  />
+                  {cepLoading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg className="w-4 h-4 text-gold-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                      </svg>
+                    </div>
+                  )}
+                  {!cepLoading && fields.endereco && fields.cep.replace(/\D/g,'').length === 8 && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {cepErro && <p className="text-red-400 text-xs mt-1.5 font-body">{cepErro}</p>}
+              </div>
+
               {/* CPF */}
               <div className="mb-4">
                 <label className="label">CPF do contratante</label>
@@ -215,7 +284,7 @@ function ModalContrato({ orcamentoData, onClose }) {
                   className={`input-field resize-none ${errors.endereco ? 'border-red-500' : ''}`}
                   value={fields.endereco}
                   onChange={e => set('endereco', e.target.value)}
-                  placeholder={'Rua, número, bairro, CEP, cidade'}
+                  placeholder="Preenchido automaticamente pelo CEP"
                   rows={3}
                   style={{ minHeight: 'unset', lineHeight: 1.6 }}
                 />
