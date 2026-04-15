@@ -23,6 +23,7 @@ export default function AutocompleteInput({
   onDeletar,
   enterKeyHint = 'next',
   autoComplete = 'off',
+  rodapeInfo = null,  // conteúdo extra no fim da lista (endereço de referência, etc.)
 }) {
   const [aberto, setAberto] = useState(false)
   const [focado, setFocado] = useState(false)
@@ -52,7 +53,7 @@ export default function AutocompleteInput({
   )
 
   const temSugestoes = fixasFiltradas.length > 0 || extrasFiltradas.length > 0
-  const mostrarLista = aberto && (temSugestoes || (onSalvar && value.trim()))
+  const mostrarLista = aberto && (temSugestoes || (onSalvar && value.trim()) || rodapeInfo)
 
   const selecionar = (item) => {
     onChange(item)
@@ -154,6 +155,13 @@ export default function AutocompleteInput({
               </li>
             ))}
           </ul>
+
+          {/* Rodapé: endereço de referência (Maps) */}
+          {rodapeInfo && (
+            <div className="border-t border-stage-600 px-4 py-2.5">
+              {rodapeInfo}
+            </div>
+          )}
 
           {/* Rodapé: salvar novo local */}
           {onSalvar && value.trim() && !jaSalvo && !opcoes.includes(value.trim()) && (

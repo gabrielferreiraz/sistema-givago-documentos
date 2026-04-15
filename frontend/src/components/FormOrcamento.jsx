@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { validarCampos, formatarMoeda, limparMoeda, formatarDataBR } from '../utils/form'
+import { buscarLocaisOnline } from '../utils/places'
 import { SpinnerIcon, PDFIcon } from './icons'
 import AutocompleteInput from './AutocompleteInput'
 import {
@@ -12,6 +13,7 @@ import {
   carregarHistorico,
   salvarHistorico,
   removerHistorico,
+  buscarEnderecoLocal,
 } from '../utils/historico'
 
 const CAMPOS_OBRIGATORIOS = ['nome', 'evento', 'local_evento', 'data_evento', 'horas', 'valor_cache']
@@ -36,13 +38,18 @@ const HORAS_PADRAO = 2
 const HORAS_EXTRA = 3
 const EXTRA_CENTAVOS = 100000
 
-export default function FormOrcamento({ values, onChange, onSubmit, onPreencherTudo }) {
+export default function FormOrcamento({ values, onChange, onSubmit, onPreencherTudo, onFazerContrato }) {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
   const [eventosState, setEventosState] = useState(() => carregarEventos())
   const [locaisState, setLocaisState] = useState(() => carregarLocais())
   const [historico, setHistorico] = useState(() => carregarHistorico())
+
+  // Endereço do local — apenas visual, não entra no PDF
+  const [enderecoLocal, setEnderecoLocal] = useState('')
+  const [placesOnline, setPlacesOnline] = useState([])  // resultados Google Places
+  const debounceRef = useRef(null)
 
   const set = (field, value) => {
     onChange(field, value)
@@ -59,10 +66,6 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
   }
 
   // Define o valor exato (substitui o campo)
-  const definirValor = (centavos) => {
-    set('valor_cache', formatarMoeda(String(centavos)))
-  }
-
   // Ajuste fino: soma ou subtrai (mínimo R$ 0)
   const ajustarValor = (delta) => {
     const atual = Math.round(limparMoeda(values.valor_cache) * 100)
@@ -92,6 +95,20 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
   const handleDeletarLocal = useCallback((local) => {
     removerLocal(local)
     setLocaisState(carregarLocais())
+  }, [])
+
+  const atualizarEnderecoLocal = useCallback((nomeLocal) => {
+    // 1. Lookup local imediato
+    setEnderecoLocal(buscarEnderecoLocal(nomeLocal))
+    // 2. Busca online com debounce de 500ms
+    setPlacesOnline([])
+    clearTimeout(debounceRef.current)
+    if (nomeLocal.trim().length >= 3) {
+      debounceRef.current = setTimeout(async () => {
+        const resultados = await buscarLocaisOnline(nomeLocal)
+        setPlacesOnline(resultados)
+      }, 500)
+    }
   }, [])
 
   // ── Submit ──────────────────────────────────────────────────────────────────
@@ -169,13 +186,52 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
           <AutocompleteInput
             id="local_evento"
             value={values.local_evento}
-            onChange={v => set('local_evento', v)}
+            onChange={v => {
+              set('local_evento', v)
+              atualizarEnderecoLocal(v)
+            }}
             placeholder="Nome do local ou endereço"
             error={errors.local_evento}
             opcoes={locaisState.todos}
             opcoesExtras={locaisState.salvos}
             onSalvar={handleSalvarLocal}
             onDeletar={handleDeletarLocal}
+            rodapeInfo={
+              enderecoLocal ? (
+                // Endereço da lista local curada
+                <span className="flex items-center gap-1.5 text-gray-500 font-body" style={{ fontSize: 12 }}>
+                  <PinIcon />
+                  {enderecoLocal}
+                </span>
+              ) : placesOnline.length > 0 ? (
+                // Resultados do Google Places
+                <div className="space-y-0.5 -mx-1">
+                  <p className="text-gray-600 font-body px-1 mb-1" style={{ fontSize: 11 }}>
+                    Resultados online
+                  </p>
+                  {placesOnline.map((p, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onMouseDown={() => {
+                        set('local_evento', p.nome)
+                        setEnderecoLocal(p.endereco)
+                        setPlacesOnline([])
+                      }}
+                      className="w-full text-left rounded-lg px-2 py-1.5
+                        hover:bg-stage-600 transition-colors"
+                    >
+                      <p className="text-gray-200 font-body font-semibold" style={{ fontSize: 13 }}>{p.nome}</p>
+                      {p.endereco && (
+                        <p className="text-gray-500 font-body flex items-center gap-1" style={{ fontSize: 11 }}>
+                          <PinIcon />{p.endereco}
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : null
+            }
           />
         </Field>
 
@@ -417,6 +473,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
           historico={historico.slice(0, 5)}
           onUsarNovamente={handleUsarNovamente}
           onRemover={handleRemoverHistorico}
+          onFazerContrato={onFazerContrato}
         />
       )}
     </div>
@@ -425,7 +482,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
 
 // ─── Histórico ────────────────────────────────────────────────────────────────
 
-function HistoricoRecente({ historico, onUsarNovamente, onRemover }) {
+function HistoricoRecente({ historico, onUsarNovamente, onRemover, onFazerContrato }) {
   return (
     <div className="mt-8">
       <h3 className="label mb-3">Orçamentos Recentes</h3>
@@ -463,10 +520,23 @@ function HistoricoRecente({ historico, onUsarNovamente, onRemover }) {
                   hover:border-gold-600 hover:text-gold-400 font-bold font-body
                   transition-all active:scale-95 select-none"
                 style={{ fontSize: 12 }}
-                title="Preencher com esses dados"
+                title="Preencher orçamento com esses dados"
               >
                 Usar
               </button>
+              {onFazerContrato && (
+                <button
+                  type="button"
+                  onClick={() => onFazerContrato(item)}
+                  className="px-3 py-1.5 rounded-lg border border-gold-600/50 text-gold-500
+                    hover:bg-gold-500/10 hover:border-gold-500 font-bold font-body
+                    transition-all active:scale-95 select-none"
+                  style={{ fontSize: 12 }}
+                  title="Gerar contrato com esses dados"
+                >
+                  Contrato
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => onRemover(item._ts)}
@@ -613,6 +683,16 @@ function CheckIcon() {
   return (
     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+    </svg>
+  )
+}
+
+function PinIcon() {
+  return (
+    <svg className="w-3 h-3 text-gray-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
     </svg>
   )
 }

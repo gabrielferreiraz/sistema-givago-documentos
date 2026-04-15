@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { hoje, formatarCpfCnpj } from '../utils/form'
+import { hoje, formatarCpfCnpj, formatarCEP } from '../utils/form'
 import { gerarContrato } from '../utils/api'
 
 export default function ResultadoPDF({ result, documentType, onNewDocument, orcamentoData }) {
@@ -83,10 +83,6 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
-const formatarCEP = (raw) => {
-  const d = raw.replace(/\D/g, '').slice(0, 8)
-  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d
-}
 
 function ModalContrato({ orcamentoData, onClose }) {
   const [fields, setFields] = useState({
@@ -94,6 +90,7 @@ function ModalContrato({ orcamentoData, onClose }) {
     cpf: '',
     rg: '',
     endereco: '',
+    pessoas_banda: 7,
     data_assinatura: hoje(),
   })
   const [errors, setErrors] = useState({})
@@ -291,15 +288,36 @@ function ModalContrato({ orcamentoData, onClose }) {
                 {errors.endereco && <p className="text-red-400 text-xs mt-1.5 font-body">Campo obrigatório</p>}
               </div>
 
-              {/* Data de assinatura */}
-              <div className="mb-6">
-                <label className="label">Data de assinatura</label>
-                <input
-                  type="date"
-                  className={`input-field ${errors.data_assinatura ? 'border-red-500' : ''}`}
-                  value={fields.data_assinatura}
-                  onChange={e => set('data_assinatura', e.target.value)}
-                />
+              {/* Data da assinatura */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="space-y-1.5">
+                  <label htmlFor="data_assinatura" className="label text-sm">Data de assinatura</label>
+                  <input
+                    id="data_assinatura"
+                    type="date"
+                    className={`input-field h-11 text-sm ${errors.data_assinatura ? 'border-red-500' : ''}`}
+                    value={fields.data_assinatura}
+                    onChange={e => set('data_assinatura', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="pessoas_banda" className="label text-sm">Pessoas na banda</label>
+                  <div className="relative">
+                    <input
+                      id="pessoas_banda"
+                      type="number"
+                      className="input-field h-11 text-sm font-mono pr-12"
+                      value={fields.pessoas_banda}
+                      onChange={e => set('pessoas_banda', e.target.value)}
+                      placeholder="7"
+                      inputMode="numeric"
+                      min="1"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-body" style={{ fontSize: 10 }}>
+                      pessoas
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {errorMsg && (

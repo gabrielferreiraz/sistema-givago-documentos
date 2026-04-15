@@ -78,6 +78,14 @@ export function formatarDataBR(iso) {
 }
 
 /**
+ * Aplica máscara de CEP: "12345678" → "12345-678"
+ */
+export function formatarCEP(raw) {
+  const d = raw.replace(/\D/g, '').slice(0, 8)
+  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d
+}
+
+/**
  * Valida campos obrigatórios. Retorna { campo: true } para cada campo vazio.
  */
 export function validarCampos(form, camposObrigatorios) {

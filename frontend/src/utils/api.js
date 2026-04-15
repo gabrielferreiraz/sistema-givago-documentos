@@ -1,5 +1,6 @@
 import { formatarDataBR, limparMoeda, hoje } from './form'
 
+
 /**
  * Tempo máximo de espera pela resposta do N8N + Gotenberg.
  * Configurável via .env para ajuste sem alterar código.
@@ -15,14 +16,19 @@ const TIMEOUT_MS = parseInt(import.meta.env.VITE_PDF_TIMEOUT_MS || '90000', 10)
  * @throws {Error} com .code: 'config' | 'timeout' | 'server' | 'network'
  */
 export async function gerarDocumento({ tipo, formData }) {
-  const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL
+  const baseUrl = import.meta.env.VITE_N8N_WEBHOOK_URL
   const token = import.meta.env.VITE_N8N_WEBHOOK_TOKEN
 
-  if (!webhookUrl) {
+  if (!baseUrl) {
     const err = new Error('VITE_N8N_WEBHOOK_URL não está configurada no arquivo .env')
     err.code = 'config'
     throw err
   }
+
+  // Contrato usa endpoint próprio no N8N — deriva automaticamente da URL base
+  const webhookUrl = tipo === 'contrato'
+    ? (import.meta.env.VITE_N8N_CONTRACT_WEBHOOK_URL || baseUrl.replace(/\/([^/]+)$/, '/givago-contrato'))
+    : baseUrl
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
@@ -140,6 +146,7 @@ function buildContratoPayload(orc, extra) {
     data_evento_br: formatarDataBR(orc.data_evento),
     local_evento: orc.local_evento,
     horas: orc.horas,
+    ...(extra.pessoas_banda != null ? { pessoas_banda: parseInt(extra.pessoas_banda, 10) || 7 } : {}),
     valor_cache: valor,
     valor_cache_formatado: valor.toLocaleString('pt-BR', {
       style: 'currency', currency: 'BRL', minimumFractionDigits: 2,
@@ -217,26 +224,44 @@ function buildPayload(tipo, formData) {
       const valorNumerico = limparMoeda(formData.valor_cache)
       return {
         ...base,
-        nome_contratante: formData.nome_contratante,
-        cpf_cnpj: formData.cpf_cnpj,
-        telefone: formData.telefone,
-        nome_evento: formData.nome_evento,
-        horario_inicio: formData.horario_inicio,
-        horario_fim: formData.horario_fim,
-        local_evento: formData.local_evento,
-        cidade_estado: formData.cidade_estado,
-        forma_pagamento: formData.forma_pagamento,
-        observacoes: formData.observacoes || '',
-        clausulas_especiais: formData.clausulas_especiais || '',
+        // Identificação do contrato
         data_assinatura: formData.data_assinatura,
         data_assinatura_br: formatarDataBR(formData.data_assinatura),
-        // Valor em três formatos para flexibilidade no template
+        // Contratante
+        nome_contratante:         formData.nome_contratante,
+        cpf_cnpj:                 formData.cpf_cnpj,
+        rg:                       formData.rg || '',
+        ssp_uf:                   formData.ssp_uf || '',
+        telefone:                 formData.telefone,
+        cep:                      formData.cep || '',
+        endereco_rua:             formData.endereco_rua || '',
+        endereco_numero:          formData.endereco_numero || '',
+        endereco_bairro:          formData.endereco_bairro || '',
+        cidade_estado_contratante: formData.cidade_estado_contratante || '',
+        // Evento
+        nome_evento:          formData.nome_evento,
+        horas:                formData.horas,
+        local_evento:         formData.local_evento,
+        endereco_local_evento: formData.endereco_local_evento || '',
+        ...(formData.pessoas_banda !== null && formData.pessoas_banda !== undefined
+          ? { pessoas_banda: parseInt(formData.pessoas_banda, 10) || 7 }
+          : {}),
+        // Financeiro
+        forma_pagamento: formData.forma_pagamento,
         valor_cache: valorNumerico,
         valor_cache_formatado: valorNumerico.toLocaleString('pt-BR', {
           style: 'currency',
           currency: 'BRL',
           minimumFractionDigits: 2,
         }),
+        // Cláusulas e observações
+        clausulas_especiais: formData.clausulas_especiais || '',
+        observacoes:         formData.observacoes || '',
+        frase_rodape: (() => {
+          if (!formData.frase_rodape_ativo) return ''
+          if (formData.frase_rodape_modo === 'manual') return formData.frase_rodape_manual || ''
+          return formData.frase_rodape_auto || ''
+        })(),
       }
     }
 

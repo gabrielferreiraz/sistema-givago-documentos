@@ -28,17 +28,55 @@ export function removerHistorico(ts) {
 const KEY_LOCAIS = 'givago_locais'
 
 export const LOCAIS_FIXOS = [
-  'Buffet Bellate',
-  'Buffet Espaço Villa',
+  // Campo Grande
+  'Espaço Bellatê',
   'Bosque Expo',
   'Centro de Convenções Albano Franco',
-  'Clube do Exército CG',
-  'Espaço Unique',
+  'Círculo Militar CG',
   'Hotel Jandaia',
-  'Hotel Deville',
+  'Hotel Deville Prime',
+  'Espaço Adepol',
+  'Ondara Buffet',
+  'Spazzio Cristina Martinez',
+  'Grand Mère Buffet',
+  'Buffet Jacarandá',
+  'Espaço Raymundo\'s',
   'Chácara Bela Vista',
   'Rancho do Boi',
+  // Dourados
+  'Centro de Convenções Dourados',
+  'Dourados Clube',
 ]
+
+/**
+ * Endereços conhecidos dos locais fixos.
+ * Lookup local — sem API, sem erro, funciona offline.
+ * Chave deve bater exatamente com o nome em LOCAIS_FIXOS.
+ */
+export const ENDERECOS_LOCAIS = {
+  'Espaço Bellatê':                    'R. São Paulo, 395 — São Francisco, Campo Grande/MS',
+  'Bosque Expo':                        'Av. Cônsul Assaf Trad, 4796 — Parque Novos Estados, Campo Grande/MS',
+  'Centro de Convenções Albano Franco': 'Av. Mato Grosso, 5017 — Carandá Bosque, Campo Grande/MS',
+  'Círculo Militar CG':                 'Av. Afonso Pena, 107 — Amambaí, Campo Grande/MS',
+  'Hotel Jandaia':                      'R. Barão do Rio Branco, 1271 — Centro, Campo Grande/MS',
+  'Hotel Deville Prime':                'Av. Mato Grosso, 4250 — Carandá Bosque, Campo Grande/MS',
+  'Espaço Adepol':                      'R. Dr. Robison Benedito Maia, 321 — Carandá Bosque, Campo Grande/MS',
+  'Ondara Buffet':                      'R. Dr. Mario Gonçalves, 129 — Chácara Cachoeira, Campo Grande/MS',
+  'Espaço Raymundo\'s':                 'R. Vitório Zeola, 1786 — Carandá Bosque, Campo Grande/MS',
+}
+
+/**
+ * Retorna o endereço de referência para um local, ou '' se não cadastrado.
+ */
+export function buscarEnderecoLocal(nomeLocal) {
+  if (!nomeLocal) return ''
+  // Busca exata primeiro
+  if (ENDERECOS_LOCAIS[nomeLocal]) return ENDERECOS_LOCAIS[nomeLocal]
+  // Busca parcial (case-insensitive) — útil quando o usuário digitou parcialmente
+  const lower = nomeLocal.toLowerCase()
+  const chave = Object.keys(ENDERECOS_LOCAIS).find(k => k.toLowerCase().includes(lower) || lower.includes(k.toLowerCase()))
+  return chave ? ENDERECOS_LOCAIS[chave] : ''
+}
 
 export function carregarLocais() {
   try {

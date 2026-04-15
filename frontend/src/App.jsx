@@ -33,20 +33,33 @@ function orcamentoInicial() {
 function contratoInicial() {
   return {
     numero: gerarNumeroDoc('CTR'),
+    // Contratante
     nome_contratante: '',
     cpf_cnpj: '',
+    rg: '',
+    ssp_uf: 'SSP/MS',
     telefone: '',
+    cep: '',
+    endereco_rua: '',
+    endereco_numero: '',
+    endereco_bairro: '',
+    cidade_estado_contratante: '',
+    // Evento
     nome_evento: '',
     data_evento: '',
-    horario_inicio: '',
-    horario_fim: '',
+    horas: '2',
     local_evento: '',
-    cidade_estado: '',
+    endereco_local_evento: '',
+    pessoas_banda: null,
     valor_cache: '',
-    forma_pagamento: '50% antecipado + 50% no dia',
+    forma_pagamento: '30% na assinatura + 70% antes do evento',
     observacoes: '',
     data_assinatura: hoje(),
     clausulas_especiais: '',
+    frase_rodape_ativo: true,
+    frase_rodape_modo: 'auto',
+    frase_rodape_auto: '',
+    frase_rodape_manual: '',
   }
 }
 
@@ -161,6 +174,24 @@ export default function App() {
             onSubmit={handleSubmit}
             onPreencherTudo={(item) => {
               setForms(prev => ({ ...prev, orcamento: { ...orcamentoInicial(), ...item } }))
+            }}
+            onFazerContrato={(item) => {
+              setForms(prev => ({
+                ...prev,
+                contrato: {
+                  ...contratoInicial(),
+                  nome_contratante: item.nome || '',
+                  nome_evento:      item.evento || '',
+                  local_evento:          item.local_evento || '',
+                  endereco_local_evento: '',
+                  data_evento:      item.data_evento || '',
+                  horas:            item.horas || '2',
+                  valor_cache:      item.valor_cache || '',
+                },
+              }))
+              setTipoAtivo('contrato')
+              setTela('form')
+              window.scrollTo({ top: 0, behavior: 'smooth' })
             }}
           />
         )}
