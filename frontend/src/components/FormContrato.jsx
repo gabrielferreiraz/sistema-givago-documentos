@@ -58,7 +58,8 @@ const ATALHOS_CAMPO = [
   { label: '1k',  centavos: 100000 },
 ]
 
-const OPCOES_HORAS = [1, 2, 3]
+const OPCOES_HORAS      = [1, 2, 3]
+const OPCOES_HORAS_MEIA = [1.5, 2.5, 3.5]
 
 const DEFINIR_VALOR = [
   { label: '1,5k', centavos: 150000 },
@@ -529,26 +530,33 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                 />
               </Field>
               <Field id="horas" label="Duração do show" error={errors.horas} required>
-                <div className="flex gap-2">
-                  {OPCOES_HORAS.map(h => {
-                    const val = String(h)
-                    const ativo = values.horas === val
-                    return (
-                      <button
-                        key={h}
-                        type="button"
-                        onClick={() => set('horas', val)}
-                        className={`flex-1 rounded-xl border font-bold font-body transition-all active:scale-95 select-none py-2.5
-                          ${ativo
-                            ? 'border-gold-500 bg-gold-500/10 text-gold-400'
-                            : 'border-stage-500 text-gray-400 hover:border-stage-400'
-                          }`}
-                        style={{ fontSize: 14 }}
-                      >
-                        {h}h
-                      </button>
-                    )
-                  })}
+                <div className="space-y-1.5">
+                  <div className="flex gap-2">
+                    {OPCOES_HORAS.map(h => {
+                      const val = String(h)
+                      const ativo = values.horas === val
+                      return (
+                        <button key={h} type="button" onClick={() => set('horas', val)}
+                          className={`flex-1 rounded-xl border font-bold font-body transition-all active:scale-95 select-none py-2.5
+                            ${ativo ? 'border-gold-500 bg-gold-500/10 text-gold-400' : 'border-stage-500 text-gray-400 hover:border-stage-400'}`}
+                          style={{ fontSize: 14 }}
+                        >{h}h</button>
+                      )
+                    })}
+                  </div>
+                  <div className="flex gap-2">
+                    {OPCOES_HORAS_MEIA.map(h => {
+                      const val = String(h)
+                      const ativo = values.horas === val
+                      return (
+                        <button key={h} type="button" onClick={() => set('horas', val)}
+                          className={`flex-1 rounded-lg border font-bold font-body transition-all active:scale-95 select-none py-1.5
+                            ${ativo ? 'border-gold-500 bg-gold-500/10 text-gold-400' : 'border-stage-500 text-gray-500 hover:border-stage-400'}`}
+                          style={{ fontSize: 12 }}
+                        >{Math.floor(h)}h30</button>
+                      )
+                    })}
+                  </div>
                 </div>
                 {errors.horas && <p className="text-red-400 text-xs mt-1.5 font-body">Selecione a duração</p>}
               </Field>

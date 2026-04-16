@@ -19,7 +19,8 @@ import {
 const CAMPOS_OBRIGATORIOS = ['nome', 'evento', 'local_evento', 'data_evento', 'horas', 'valor_cache']
 // backline e transporte têm validação própria (modo !== 'vazio')
 
-const OPCOES_HORAS = [1, 2, 3]
+const OPCOES_HORAS      = [1, 2, 3]
+const OPCOES_HORAS_MEIA = [1.5, 2.5, 3.5]
 
 // Botões que DEFINEM o valor (substituem o que há no campo)
 const DEFINIR_VALOR = [
@@ -326,29 +327,51 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
 
         {/* ── Horas ─────────────────────────────────────────── */}
         <Field id="horas" label="Quantas horas tocar" error={errors.horas}>
-          <div className="grid grid-cols-3 gap-2">
-            {OPCOES_HORAS.map(h => {
-              const ativo = values.horas === String(h)
-              const ehPadrao = h === HORAS_PADRAO
-              return (
-                <button
-                  key={h}
-                  type="button"
-                  onClick={() => set('horas', String(h))}
-                  className={`relative rounded-xl border font-bold font-body transition-all active:scale-95 select-none
-                    ${ativo
-                      ? 'bg-gold-500 border-gold-500 text-stage-900'
-                      : 'border-stage-500 text-gray-400 hover:border-gold-600 hover:text-gray-200 bg-stage-700'
-                    }`}
-                  style={{ minHeight: 56, fontSize: 16 }}
-                >
-                  {h}h
-                  {ehPadrao && !ativo && (
-                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gold-600 opacity-60" />
-                  )}
-                </button>
-              )
-            })}
+          <div className="space-y-1.5">
+            <div className="grid grid-cols-3 gap-2">
+              {OPCOES_HORAS.map(h => {
+                const ativo = values.horas === String(h)
+                const ehPadrao = h === HORAS_PADRAO
+                return (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => set('horas', String(h))}
+                    className={`relative rounded-xl border font-bold font-body transition-all active:scale-95 select-none
+                      ${ativo
+                        ? 'bg-gold-500 border-gold-500 text-stage-900'
+                        : 'border-stage-500 text-gray-400 hover:border-gold-600 hover:text-gray-200 bg-stage-700'
+                      }`}
+                    style={{ minHeight: 56, fontSize: 16 }}
+                  >
+                    {h}h
+                    {ehPadrao && !ativo && (
+                      <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gold-600 opacity-60" />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {OPCOES_HORAS_MEIA.map(h => {
+                const ativo = values.horas === String(h)
+                return (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => set('horas', String(h))}
+                    className={`relative rounded-lg border font-bold font-body transition-all active:scale-95 select-none py-1.5
+                      ${ativo
+                        ? 'bg-gold-500 border-gold-500 text-stage-900'
+                        : 'border-stage-500 text-gray-500 hover:border-gold-600 hover:text-gray-300 bg-stage-700'
+                      }`}
+                    style={{ fontSize: 12 }}
+                  >
+                    {Math.floor(h)}h30
+                  </button>
+                )
+              })}
+            </div>
           </div>
           {errors.horas && <p className="text-red-400 text-xs mt-1.5 font-body">Selecione a duração</p>}
         </Field>
