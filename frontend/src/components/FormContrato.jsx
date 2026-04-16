@@ -84,6 +84,9 @@ export default function FormContrato({ values, onChange, onSubmit }) {
   const [locaisState, setLocaisState] = useState(() => carregarLocais())
   const [eventosState, setEventosState] = useState(() => carregarEventos())
   const [placesOnline, setPlacesOnline] = useState([])
+  const [pessoasInput, setPessoasInput] = useState(() =>
+    values.pessoas_banda != null ? String(values.pessoas_banda) : '7'
+  )
   const debounceRef = useRef(null)
 
   // Sorteia frase automática sempre que evento ou modo muda
@@ -606,7 +609,14 @@ export default function FormContrato({ values, onChange, onSubmit }) {
             <div>
               <button
                 type="button"
-                onClick={() => set('pessoas_banda', values.pessoas_banda === null ? 7 : null)}
+                onClick={() => {
+                  if (values.pessoas_banda === null) {
+                    setPessoasInput('7')
+                    set('pessoas_banda', 7)
+                  } else {
+                    set('pessoas_banda', null)
+                  }
+                }}
                 className={`flex items-center gap-3 w-full p-3.5 rounded-xl border transition-all select-none active:scale-[0.99]
                   ${values.pessoas_banda !== null
                     ? 'border-gold-500/60 bg-gold-500/5 text-gray-200'
@@ -632,13 +642,23 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                   <label htmlFor="pessoas_banda" className="label">Quantidade de pessoas</label>
                   <input
                     id="pessoas_banda"
-                    type="number"
-                    className="input-field font-mono"
-                    value={values.pessoas_banda}
-                    onChange={e => set('pessoas_banda', Math.max(1, parseInt(e.target.value) || 1))}
-                    min={1}
-                    max={50}
+                    type="text"
                     inputMode="numeric"
+                    className="input-field font-mono"
+                    value={pessoasInput}
+                    onChange={e => {
+                      const raw = e.target.value.replace(/\D/g, '')
+                      setPessoasInput(raw)
+                      const n = parseInt(raw, 10)
+                      if (n >= 1) set('pessoas_banda', Math.min(50, n))
+                    }}
+                    onBlur={() => {
+                      const n = parseInt(pessoasInput, 10)
+                      const valid = (!n || n < 1) ? 7 : Math.min(50, n)
+                      setPessoasInput(String(valid))
+                      set('pessoas_banda', valid)
+                    }}
+                    maxLength={2}
                   />
                 </div>
               )}
