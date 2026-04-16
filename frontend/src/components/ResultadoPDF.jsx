@@ -2,9 +2,39 @@ import { useState } from 'react'
 import { hoje, formatarCpfCnpj, formatarCEP } from '../utils/form'
 import { gerarContrato } from '../utils/api'
 
+async function compartilharPDF(pdfUrl, nomeArquivo) {
+  const response = await fetch(pdfUrl)
+  const blob = await response.blob()
+  const file = new File([blob], nomeArquivo || 'documento.pdf', { type: 'application/pdf' })
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({ files: [file], title: nomeArquivo || 'Documento' })
+  } else {
+    // Fallback: abre link em nova aba se o browser não suportar share de arquivos
+    window.open(pdfUrl, '_blank')
+  }
+}
+
 export default function ResultadoPDF({ result, documentType, onNewDocument, orcamentoData }) {
   const label = documentType === 'contrato' ? 'Contrato' : 'Orçamento'
   const [modalAberto, setModalAberto] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [shareErro, setShareErro] = useState('')
+
+  const handleCompartilhar = async () => {
+    if (!result.pdf_url) return
+    setSharing(true)
+    setShareErro('')
+    try {
+      await compartilharPDF(result.pdf_url, result.nome_arquivo)
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        setShareErro('Não foi possível compartilhar. Tente baixar o PDF manualmente.')
+      }
+    } finally {
+      setSharing(false)
+    }
+  }
 
   return (
     <div className="w-full max-w-lg animate-slide-up">
@@ -49,13 +79,46 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
           </button>
         )}
 
+        {/* Compartilhar arquivo PDF */}
+        {result.pdf_url && (
+          <div className="mb-3">
+            <button
+              onClick={handleCompartilhar}
+              disabled={sharing}
+              className="flex items-center justify-center gap-2 w-full rounded-xl font-bold font-body
+                bg-green-600 hover:bg-green-500 active:scale-95 text-white transition-all select-none
+                disabled:opacity-60 disabled:pointer-events-none"
+              style={{ fontSize: 16, minHeight: 52 }}
+            >
+              {sharing ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                  </svg>
+                  Preparando arquivo...
+                </>
+              ) : (
+                <>
+                  <WhatsAppIcon />
+                  Compartilhar PDF
+                </>
+              )}
+            </button>
+            {shareErro && (
+              <p className="text-amber-400 font-body text-xs mt-1.5 text-center">{shareErro}</p>
+            )}
+          </div>
+        )}
+
         <a
           href="https://wa.me/556796921144"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2 w-full mb-3 rounded-xl font-bold font-body
-            bg-green-600 hover:bg-green-500 active:scale-95 text-white transition-all select-none"
-          style={{ fontSize: 16, minHeight: 52 }}
+            bg-stage-700 border border-stage-500 hover:border-stage-400
+            active:scale-95 text-gray-300 transition-all select-none"
+          style={{ fontSize: 15, minHeight: 46 }}
         >
           <WhatsAppIcon />
           Abrir WhatsApp do Givago

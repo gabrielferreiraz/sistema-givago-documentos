@@ -189,6 +189,7 @@ function buildPayload(tipo, formData) {
         nome: formData.nome,
         evento: formData.evento,
         local_evento: formData.local_evento,
+        cidade_show: formData.cidade_show || '',
         horas: formData.horas,
         valor_cache: valorOrc,
         valor_cache_formatado: valorOrc.toLocaleString('pt-BR', {

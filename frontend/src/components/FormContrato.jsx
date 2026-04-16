@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { formatarMoeda, limparMoeda, formatarTelefone, formatarCpfCnpj, validarCampos, formatarCEP } from '../utils/form'
-import { SpinnerIcon, PDFIcon } from './icons'
+import { SpinnerIcon, PDFIcon, ClearButton } from './icons'
 import AutocompleteInput from './AutocompleteInput'
 import { carregarLocais, salvarLocal, removerLocal, buscarEnderecoLocal, carregarEventos, salvarEvento, removerEvento } from '../utils/historico'
 import { buscarLocaisOnline } from '../utils/places'
@@ -176,10 +176,8 @@ export default function FormContrato({ values, onChange, onSubmit }) {
   const handleLocalChange = (v) => {
     set('local_evento', v)
     setPlacesOnline([])
-    // Lookup local imediato
-    const endLocal = buscarEnderecoLocal(v)
-    if (endLocal) { set('endereco_local_evento', endLocal); return }
-    // Busca online com debounce
+    if (!v) set('endereco_local_evento', '')
+    // Busca online com debounce — sem preencher endereço automaticamente
     clearTimeout(debounceRef.current)
     if (v.trim().length >= 3) {
       debounceRef.current = setTimeout(async () => {
@@ -187,6 +185,12 @@ export default function FormContrato({ values, onChange, onSubmit }) {
         setPlacesOnline(resultados)
       }, 500)
     }
+  }
+
+  // Chamado quando o usuário escolhe explicitamente um local da lista suspensa
+  const handleSelectLocal = (local) => {
+    const endLocal = buscarEnderecoLocal(local)
+    if (endLocal) set('endereco_local_evento', endLocal)
   }
 
   const handleCEP = async (raw) => {
@@ -281,15 +285,18 @@ export default function FormContrato({ values, onChange, onSubmit }) {
           <div className="space-y-4">
 
             <Field id="nome_contratante" label="Nome completo" error={errors.nome_contratante} required>
-              <input
-                id="nome_contratante"
-                className={`input-field ${errors.nome_contratante ? 'border-red-500' : ''}`}
-                value={values.nome_contratante}
-                onChange={e => set('nome_contratante', e.target.value)}
-                placeholder="Nome do contratante ou empresa"
-                autoComplete="name"
-                enterKeyHint="next"
-              />
+              <div className="relative">
+                <input
+                  id="nome_contratante"
+                  className={`input-field ${values.nome_contratante ? 'pr-8' : ''} ${errors.nome_contratante ? 'border-red-500' : ''}`}
+                  value={values.nome_contratante}
+                  onChange={e => set('nome_contratante', e.target.value)}
+                  placeholder="Nome do contratante ou empresa"
+                  autoComplete="name"
+                  enterKeyHint="next"
+                />
+                {values.nome_contratante && <ClearButton onClick={() => set('nome_contratante', '')} />}
+              </div>
             </Field>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -297,7 +304,7 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                 <div className="relative">
                   <input
                     id="cpf_cnpj"
-                    className={`input-field font-mono pr-10 ${errors.cpf_cnpj ? 'border-red-500' : ''}`}
+                    className={`input-field font-mono ${values.cpf_cnpj ? 'pr-16' : 'pr-10'} ${errors.cpf_cnpj ? 'border-red-500' : ''}`}
                     value={values.cpf_cnpj}
                     onChange={e => handleCpfCnpj(e.target.value)}
                     placeholder="000.000.000-00"
@@ -306,7 +313,7 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                     maxLength={18}
                   />
                   {cnpjLoading && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-9 top-1/2 -translate-y-1/2">
                       <svg className="w-4 h-4 text-gold-400 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
@@ -314,55 +321,65 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                     </div>
                   )}
                   {!cnpjLoading && cnpjOk && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-9 top-1/2 -translate-y-1/2">
                       <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
                       </svg>
                     </div>
                   )}
+                  {values.cpf_cnpj && !cnpjLoading && <ClearButton onClick={() => { set('cpf_cnpj', ''); setCnpjOk(false); setCnpjErro('') }} />}
                 </div>
                 {cnpjErro && <p className="text-amber-400 text-xs mt-1.5 font-body">{cnpjErro}</p>}
                 {!cnpjErro && cnpjOk && <p className="text-green-400 text-xs mt-1.5 font-body">Dados da empresa preenchidos automaticamente</p>}
               </Field>
               <Field id="telefone" label="Telefone / WhatsApp" error={errors.telefone} required>
-                <input
-                  id="telefone"
-                  type="tel"
-                  className={`input-field font-mono ${errors.telefone ? 'border-red-500' : ''}`}
-                  value={values.telefone}
-                  onChange={e => set('telefone', formatarTelefone(e.target.value))}
-                  placeholder="(67) 99999-9999"
-                  autoComplete="tel"
-                  inputMode="tel"
-                  maxLength={15}
-                />
+                <div className="relative">
+                  <input
+                    id="telefone"
+                    type="tel"
+                    className={`input-field font-mono ${values.telefone ? 'pr-8' : ''} ${errors.telefone ? 'border-red-500' : ''}`}
+                    value={values.telefone}
+                    onChange={e => set('telefone', formatarTelefone(e.target.value))}
+                    placeholder="(67) 99999-9999"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    maxLength={15}
+                  />
+                  {values.telefone && <ClearButton onClick={() => set('telefone', '')} />}
+                </div>
               </Field>
             </div>
 
             {!isCNPJ && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field id="rg" label="RG" error={errors.rg} required>
-                <input
-                  id="rg"
-                  className={`input-field font-mono ${errors.rg ? 'border-red-500' : ''}`}
-                  value={values.rg}
-                  onChange={e => set('rg', e.target.value)}
-                  placeholder="0000000"
-                  autoComplete="off"
-                  enterKeyHint="next"
-                />
+                <div className="relative">
+                  <input
+                    id="rg"
+                    className={`input-field font-mono ${values.rg ? 'pr-8' : ''} ${errors.rg ? 'border-red-500' : ''}`}
+                    value={values.rg}
+                    onChange={e => set('rg', e.target.value)}
+                    placeholder="0000000"
+                    autoComplete="off"
+                    enterKeyHint="next"
+                  />
+                  {values.rg && <ClearButton onClick={() => set('rg', '')} />}
+                </div>
               </Field>
               <Field id="ssp_uf" label="Órgão emissor" error={errors.ssp_uf} required>
-                <input
-                  id="ssp_uf"
-                  className={`input-field ${errors.ssp_uf ? 'border-red-500' : ''}`}
-                  value={values.ssp_uf}
-                  onChange={e => set('ssp_uf', e.target.value.toUpperCase())}
-                  placeholder="SSP/MS"
-                  autoComplete="off"
-                  enterKeyHint="next"
-                  maxLength={10}
-                />
+                <div className="relative">
+                  <input
+                    id="ssp_uf"
+                    className={`input-field ${values.ssp_uf ? 'pr-8' : ''} ${errors.ssp_uf ? 'border-red-500' : ''}`}
+                    value={values.ssp_uf}
+                    onChange={e => set('ssp_uf', e.target.value.toUpperCase())}
+                    placeholder="SSP/MS"
+                    autoComplete="off"
+                    enterKeyHint="next"
+                    maxLength={10}
+                  />
+                  {values.ssp_uf && <ClearButton onClick={() => set('ssp_uf', '')} />}
+                </div>
               </Field>
             </div>
             )}
@@ -376,7 +393,7 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                 <div className="relative">
                   <input
                     id="cep"
-                    className={`input-field font-mono pr-10 ${cepErro ? 'border-red-500' : ''}`}
+                    className={`input-field font-mono ${values.cep ? 'pr-16' : 'pr-10'} ${cepErro ? 'border-red-500' : ''}`}
                     value={values.cep}
                     onChange={e => handleCEP(e.target.value)}
                     placeholder="00000-000"
@@ -385,7 +402,7 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                     maxLength={9}
                   />
                   {cepLoading && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-9 top-1/2 -translate-y-1/2">
                       <svg className="w-4 h-4 text-gold-400 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
@@ -393,12 +410,13 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                     </div>
                   )}
                   {!cepLoading && values.endereco_rua && values.cep.replace(/\D/g,'').length === 8 && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-9 top-1/2 -translate-y-1/2">
                       <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
                       </svg>
                     </div>
                   )}
+                  {values.cep && !cepLoading && <ClearButton onClick={() => { set('cep', ''); setCepErro('') }} />}
                 </div>
                 {cepErro && <p className="text-red-400 text-xs mt-1.5 font-body">{cepErro}</p>}
               </Field>
@@ -406,52 +424,64 @@ export default function FormContrato({ values, onChange, onSubmit }) {
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
                   <Field id="endereco_rua" label="Rua / Logradouro" error={errors.endereco_rua} required>
-                    <input
-                      id="endereco_rua"
-                      className={`input-field ${errors.endereco_rua ? 'border-red-500' : ''}`}
-                      value={values.endereco_rua}
-                      onChange={e => set('endereco_rua', e.target.value)}
-                      placeholder="Preenchido pelo CEP"
-                      autoComplete="street-address"
-                      enterKeyHint="next"
-                    />
+                    <div className="relative">
+                      <input
+                        id="endereco_rua"
+                        className={`input-field ${values.endereco_rua ? 'pr-8' : ''} ${errors.endereco_rua ? 'border-red-500' : ''}`}
+                        value={values.endereco_rua}
+                        onChange={e => set('endereco_rua', e.target.value)}
+                        placeholder="Preenchido pelo CEP"
+                        autoComplete="street-address"
+                        enterKeyHint="next"
+                      />
+                      {values.endereco_rua && <ClearButton onClick={() => set('endereco_rua', '')} />}
+                    </div>
                   </Field>
                 </div>
                 <Field id="endereco_numero" label="Número" error={errors.endereco_numero} required>
-                  <input
-                    id="endereco_numero"
-                    className={`input-field ${errors.endereco_numero ? 'border-red-500' : ''}`}
-                    value={values.endereco_numero}
-                    onChange={e => set('endereco_numero', e.target.value)}
-                    placeholder="78"
-                    autoComplete="off"
-                    enterKeyHint="next"
-                  />
+                  <div className="relative">
+                    <input
+                      id="endereco_numero"
+                      className={`input-field ${values.endereco_numero ? 'pr-8' : ''} ${errors.endereco_numero ? 'border-red-500' : ''}`}
+                      value={values.endereco_numero}
+                      onChange={e => set('endereco_numero', e.target.value)}
+                      placeholder="78"
+                      autoComplete="off"
+                      enterKeyHint="next"
+                    />
+                    {values.endereco_numero && <ClearButton onClick={() => set('endereco_numero', '')} />}
+                  </div>
                 </Field>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field id="endereco_bairro" label="Bairro" error={errors.endereco_bairro} required>
-                  <input
-                    id="endereco_bairro"
-                    className={`input-field ${errors.endereco_bairro ? 'border-red-500' : ''}`}
-                    value={values.endereco_bairro}
-                    onChange={e => set('endereco_bairro', e.target.value)}
-                    placeholder="Preenchido pelo CEP"
-                    autoComplete="off"
-                    enterKeyHint="next"
-                  />
+                  <div className="relative">
+                    <input
+                      id="endereco_bairro"
+                      className={`input-field ${values.endereco_bairro ? 'pr-8' : ''} ${errors.endereco_bairro ? 'border-red-500' : ''}`}
+                      value={values.endereco_bairro}
+                      onChange={e => set('endereco_bairro', e.target.value)}
+                      placeholder="Preenchido pelo CEP"
+                      autoComplete="off"
+                      enterKeyHint="next"
+                    />
+                    {values.endereco_bairro && <ClearButton onClick={() => set('endereco_bairro', '')} />}
+                  </div>
                 </Field>
                 <Field id="cidade_estado_contratante" label="Cidade / Estado" error={errors.cidade_estado_contratante} required>
-                  <input
-                    id="cidade_estado_contratante"
-                    className={`input-field ${errors.cidade_estado_contratante ? 'border-red-500' : ''}`}
-                    value={values.cidade_estado_contratante}
-                    onChange={e => set('cidade_estado_contratante', e.target.value)}
-                    placeholder="Preenchido pelo CEP"
-                    autoComplete="address-level2"
-                    enterKeyHint="next"
-                  />
+                  <div className="relative">
+                    <input
+                      id="cidade_estado_contratante"
+                      className={`input-field ${values.cidade_estado_contratante ? 'pr-8' : ''} ${errors.cidade_estado_contratante ? 'border-red-500' : ''}`}
+                      value={values.cidade_estado_contratante}
+                      onChange={e => set('cidade_estado_contratante', e.target.value)}
+                      placeholder="Preenchido pelo CEP"
+                      autoComplete="address-level2"
+                      enterKeyHint="next"
+                    />
+                    {values.cidade_estado_contratante && <ClearButton onClick={() => set('cidade_estado_contratante', '')} />}
+                  </div>
                 </Field>
               </div>
             </div>
@@ -517,6 +547,7 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                 id="local_evento"
                 value={values.local_evento}
                 onChange={handleLocalChange}
+                onSelect={handleSelectLocal}
                 placeholder="Ex: Espaço de Eventos Adepol"
                 error={errors.local_evento}
                 opcoes={locaisState.todos}
@@ -524,7 +555,7 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                 onSalvar={handleSalvarLocal}
                 onDeletar={handleDeletarLocal}
                 rodapeInfo={placesOnline.length > 0 ? (
-                  <div className="space-y-0.5 -mx-1">
+                  <div className="space-y-1 -mx-1">
                     <p className="text-gray-600 font-body px-1 mb-1" style={{ fontSize: 11 }}>
                       Resultados online
                     </p>
@@ -535,13 +566,25 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                         onMouseDown={() => {
                           set('local_evento', p.nome)
                           if (p.endereco) set('endereco_local_evento', p.endereco)
+                          handleSalvarLocal(p.nome)
                           setPlacesOnline([])
                         }}
-                        className="w-full text-left rounded-lg px-2 py-1.5 hover:bg-stage-600 transition-colors"
+                        className="w-full text-left rounded-lg px-2 py-2 hover:bg-stage-600 transition-colors"
                       >
-                        <p className="text-gray-200 font-body font-semibold" style={{ fontSize: 13 }}>{p.nome}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-gray-200 font-body font-semibold" style={{ fontSize: 13 }}>{p.nome}</p>
+                          <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full
+                            bg-gold-500/15 border border-gold-500/40 text-gold-400 font-bold font-body"
+                            style={{ fontSize: 10 }}
+                          >
+                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Escolher e salvar
+                          </span>
+                        </div>
                         {p.endereco && (
-                          <p className="text-gray-500 font-body" style={{ fontSize: 11 }}>{p.endereco}</p>
+                          <p className="text-gray-500 font-body mt-0.5" style={{ fontSize: 11 }}>{p.endereco}</p>
                         )}
                       </button>
                     ))}
@@ -598,15 +641,18 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                 Endereço do local
                 <span className="text-gray-600 font-normal ml-1">— opcional</span>
               </label>
-              <input
-                id="endereco_local_evento"
-                className="input-field"
-                value={values.endereco_local_evento}
-                onChange={e => set('endereco_local_evento', e.target.value)}
-                placeholder="Preenchido ao selecionar o local, ou digite manualmente"
-                autoComplete="off"
-                enterKeyHint="next"
-              />
+              <div className="relative">
+                <input
+                  id="endereco_local_evento"
+                  className={`input-field ${values.endereco_local_evento ? 'pr-8' : ''}`}
+                  value={values.endereco_local_evento}
+                  onChange={e => set('endereco_local_evento', e.target.value)}
+                  placeholder="Preenchido ao selecionar o local, ou digite manualmente"
+                  autoComplete="off"
+                  enterKeyHint="next"
+                />
+                {values.endereco_local_evento && <ClearButton onClick={() => set('endereco_local_evento', '')} />}
+              </div>
             </div>
 
           </div>
@@ -732,15 +778,18 @@ export default function FormContrato({ values, onChange, onSubmit }) {
           title="Cláusulas Especiais"
           hasContent={!!values.clausulas_especiais}
         >
-          <textarea
-            id="clausulas_especiais"
-            className="input-field resize-none"
-            style={{ lineHeight: '1.6' }}
-            rows={4}
-            value={values.clausulas_especiais}
-            onChange={e => set('clausulas_especiais', e.target.value)}
-            placeholder="Penalidades por cancelamento, condições especiais, requisitos específicos..."
-          />
+          <div className="relative">
+            <textarea
+              id="clausulas_especiais"
+              className={`input-field resize-none ${values.clausulas_especiais ? 'pr-8' : ''}`}
+              style={{ lineHeight: '1.6' }}
+              rows={4}
+              value={values.clausulas_especiais}
+              onChange={e => set('clausulas_especiais', e.target.value)}
+              placeholder="Penalidades por cancelamento, condições especiais, requisitos específicos..."
+            />
+            {values.clausulas_especiais && <ClearButton onClick={() => set('clausulas_especiais', '')} className="top-2.5 translate-y-0" />}
+          </div>
         </Collapsible>
 
         {/* ── Rider / Observações (colapsável) ────────────── */}
@@ -748,15 +797,18 @@ export default function FormContrato({ values, onChange, onSubmit }) {
           title="Rider Técnico / Observações"
           hasContent={!!values.observacoes}
         >
-          <textarea
-            id="observacoes"
-            className="input-field resize-none"
-            style={{ lineHeight: '1.6' }}
-            rows={3}
-            value={values.observacoes}
-            onChange={e => set('observacoes', e.target.value)}
-            placeholder="Sistema de som, iluminação, camarim, refeições, observações gerais..."
-          />
+          <div className="relative">
+            <textarea
+              id="observacoes"
+              className={`input-field resize-none ${values.observacoes ? 'pr-8' : ''}`}
+              style={{ lineHeight: '1.6' }}
+              rows={3}
+              value={values.observacoes}
+              onChange={e => set('observacoes', e.target.value)}
+              placeholder="Sistema de som, iluminação, camarim, refeições, observações gerais..."
+            />
+            {values.observacoes && <ClearButton onClick={() => set('observacoes', '')} className="top-2.5 translate-y-0" />}
+          </div>
         </Collapsible>
 
         {/* ── Frase especial do rodapé ────────────────────── */}
@@ -845,14 +897,17 @@ export default function FormContrato({ values, onChange, onSubmit }) {
               {values.frase_rodape_modo === 'manual' && (
                 <div>
                   <label htmlFor="frase_rodape_manual" className="label">Frase personalizada</label>
-                  <input
-                    id="frase_rodape_manual"
-                    className="input-field"
-                    value={values.frase_rodape_manual}
-                    onChange={e => set('frase_rodape_manual', e.target.value)}
-                    placeholder='Ex: "Noite que ficará pra sempre na memória!"'
-                    autoComplete="off"
-                  />
+                  <div className="relative">
+                    <input
+                      id="frase_rodape_manual"
+                      className={`input-field ${values.frase_rodape_manual ? 'pr-8' : ''}`}
+                      value={values.frase_rodape_manual}
+                      onChange={e => set('frase_rodape_manual', e.target.value)}
+                      placeholder='Ex: "Noite que ficará pra sempre na memória!"'
+                      autoComplete="off"
+                    />
+                    {values.frase_rodape_manual && <ClearButton onClick={() => set('frase_rodape_manual', '')} />}
+                  </div>
                 </div>
               )}
             </div>

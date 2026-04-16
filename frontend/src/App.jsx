@@ -18,6 +18,7 @@ function orcamentoInicial() {
     nome: '',
     evento: '',
     local_evento: '',
+    cidade_show: '',
     data_evento: '',
     horas: '2',
     valor_cache: '',

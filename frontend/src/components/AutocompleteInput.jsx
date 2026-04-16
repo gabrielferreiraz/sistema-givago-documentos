@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from 'react'
  *   opcoesExtras    — array de strings salvas pelo usuário (mostram ícone de lixeira)
  *   onSalvar        — fn(value) → salva o valor atual; se ausente, não exibe botão salvar
  *   onDeletar       — fn(item)  → deleta item das opções extras
+ *   onSelect        — fn(item)  → chamado quando o usuário escolhe explicitamente um item da lista
  *   enterKeyHint
  */
 export default function AutocompleteInput({
@@ -21,6 +22,7 @@ export default function AutocompleteInput({
   opcoesExtras = [],
   onSalvar,
   onDeletar,
+  onSelect,
   enterKeyHint = 'next',
   autoComplete = 'off',
   rodapeInfo = null,  // conteúdo extra no fim da lista (endereço de referência, etc.)
@@ -57,6 +59,7 @@ export default function AutocompleteInput({
 
   const selecionar = (item) => {
     onChange(item)
+    if (onSelect) onSelect(item)
     setAberto(false)
   }
 
@@ -85,20 +88,29 @@ export default function AutocompleteInput({
           className={`input-field pr-10 ${error ? 'border-red-500' : focado ? '' : ''}`}
         />
 
-        {/* Seta de dropdown */}
+        {/* X para limpar / seta para abrir */}
         <button
           type="button"
           tabIndex={-1}
-          onClick={() => setAberto(a => !a)}
+          onClick={() => {
+            if (value) { onChange(''); setAberto(false) }
+            else setAberto(a => !a)
+          }}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500
             hover:text-gray-300 transition-colors"
         >
-          <svg
-            className={`w-4 h-4 transition-transform duration-200 ${aberto ? 'rotate-180' : ''}`}
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          {value ? (
+            <svg className="w-4 h-4 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg
+              className={`w-4 h-4 transition-transform duration-200 ${aberto ? 'rotate-180' : ''}`}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          )}
         </button>
       </div>
 

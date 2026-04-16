@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { validarCampos, formatarMoeda, limparMoeda, formatarDataBR } from '../utils/form'
 import { buscarLocaisOnline } from '../utils/places'
-import { SpinnerIcon, PDFIcon } from './icons'
+import { SpinnerIcon, PDFIcon, ClearButton } from './icons'
 import AutocompleteInput from './AutocompleteInput'
 import {
   carregarEventos,
@@ -99,7 +99,14 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
 
   const atualizarEnderecoLocal = useCallback((nomeLocal) => {
     // 1. Lookup local imediato
-    setEnderecoLocal(buscarEnderecoLocal(nomeLocal))
+    const endereco = buscarEnderecoLocal(nomeLocal)
+    setEnderecoLocal(endereco)
+    if (endereco) {
+      const cidade = extrairCidade(endereco)
+      if (cidade) onChange('cidade_show', cidade)
+    } else if (!nomeLocal) {
+      onChange('cidade_show', '')
+    }
     // 2. Busca online com debounce de 500ms
     setPlacesOnline([])
     clearTimeout(debounceRef.current)
@@ -109,7 +116,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
         setPlacesOnline(resultados)
       }, 500)
     }
-  }, [])
+  }, [onChange])
 
   // ── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
@@ -155,15 +162,18 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
 
         {/* ── Nome do contratante ───────────────────────────── */}
         <Field id="nome" label="Nome do contratante" error={errors.nome}>
-          <input
-            id="nome"
-            className={`input-field ${errors.nome ? 'border-red-500' : ''}`}
-            value={values.nome}
-            onChange={e => set('nome', e.target.value)}
-            placeholder="Nome de quem está contratando"
-            autoComplete="name"
-            enterKeyHint="next"
-          />
+          <div className="relative">
+            <input
+              id="nome"
+              className={`input-field ${values.nome ? 'pr-8' : ''} ${errors.nome ? 'border-red-500' : ''}`}
+              value={values.nome}
+              onChange={e => set('nome', e.target.value)}
+              placeholder="Nome de quem está contratando"
+              autoComplete="name"
+              enterKeyHint="next"
+            />
+            {values.nome && <ClearButton onClick={() => set('nome', '')} />}
+          </div>
         </Field>
 
         {/* ── Evento (autocomplete + salvar) ───────────────── */}
@@ -216,6 +226,8 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
                       onMouseDown={() => {
                         set('local_evento', p.nome)
                         setEnderecoLocal(p.endereco)
+                        const cidade = extrairCidade(p.endereco)
+                        if (cidade) set('cidade_show', cidade)
                         setPlacesOnline([])
                       }}
                       className="w-full text-left rounded-lg px-2 py-1.5
@@ -233,6 +245,22 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
               ) : null
             }
           />
+        </Field>
+
+        {/* ── Cidade do show ───────────────────────────────── */}
+        <Field id="cidade_show" label="Cidade">
+          <div className="relative">
+            <input
+              id="cidade_show"
+              className={`input-field ${values.cidade_show ? 'pr-8' : ''}`}
+              value={values.cidade_show}
+              onChange={e => set('cidade_show', e.target.value)}
+              placeholder="Ex: Campo Grande - MS"
+              autoComplete="off"
+              enterKeyHint="next"
+            />
+            {values.cidade_show && <ClearButton onClick={() => set('cidade_show', '')} />}
+          </div>
         </Field>
 
         {/* ── Data do evento ────────────────────────────────── */}
@@ -276,7 +304,7 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
               <input
                 id="horario"
                 type="text"
-                className="input-field font-mono pl-10 tracking-widest"
+                className={`input-field font-mono pl-10 tracking-widest ${values.horario ? 'pr-16' : ''}`}
                 value={values.horario}
                 onChange={e => set('horario', mascaraHorario(e.target.value))}
                 placeholder="00:00"
@@ -285,12 +313,13 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
                 autoFocus
               />
               {/^\d{2}:\d{2}$/.test(values.horario) && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gold-500">
+                <div className="absolute right-9 top-1/2 -translate-y-1/2 text-gold-500">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
               )}
+              {values.horario && <ClearButton onClick={() => set('horario', '')} />}
             </div>
           )}
         </div>
@@ -669,6 +698,22 @@ function ToggleBtn({ active, onClick, children }) {
       {children}
     </button>
   )
+}
+
+/**
+ * Extrai "Cidade/UF" de strings de endereço nos dois formatos conhecidos:
+ *   ENDERECOS_LOCAIS → "..., Campo Grande/MS"
+ *   Places secondaryText → "..., Campo Grande - MS" ou "Campo Grande, MS, Brasil"
+ */
+function extrairCidade(endereco) {
+  if (!endereco) return ''
+  // Formato "Cidade/UF"
+  const m1 = endereco.match(/([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s]+)\/([A-Z]{2})/)
+  if (m1) return `${m1[1].trim()}/${m1[2]}`
+  // Formato "Cidade - UF" ou "Cidade, UF" (Places)
+  const m2 = endereco.match(/([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s]+)\s*[-,]\s*([A-Z]{2})(?:[,\s]|$)/)
+  if (m2) return `${m2[1].trim()}/${m2[2]}`
+  return ''
 }
 
 function mascaraHorario(raw) {

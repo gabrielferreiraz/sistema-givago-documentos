@@ -1,3 +1,24 @@
+/**
+ * Botão X para limpar o valor de um campo.
+ * className permite sobrescrever posicionamento (padrão: centralizado na direita).
+ */
+export function ClearButton({ onClick, className = 'top-1/2 -translate-y-1/2' }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`absolute right-2.5 ${className} w-5 h-5
+        flex items-center justify-center rounded-full
+        text-gray-400 hover:text-red-400 hover:bg-stage-600
+        transition-colors active:scale-90`}
+    >
+      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  )
+}
+
 export function SpinnerIcon() {
   return (
     <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
