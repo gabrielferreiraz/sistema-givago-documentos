@@ -241,6 +241,10 @@ function buildPayload(tipo, formData) {
 
       const fmt = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })
 
+      const fmtOpcional = (v) => typeof v === 'number'
+        ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })
+        : null
+
       const payload = {
         ...base,
         // Identificação do contrato
@@ -281,8 +285,14 @@ function buildPayload(tipo, formData) {
         })(),
       }
 
-      if (backlineVal !== undefined)   payload.backline   = backlineVal
-      if (transporteVal !== undefined) payload.transporte = transporteVal
+      if (backlineVal !== undefined) {
+        payload.backline = backlineVal
+        if (typeof backlineVal === 'number') payload.backline_formatado = fmtOpcional(backlineVal)
+      }
+      if (transporteVal !== undefined) {
+        payload.transporte = transporteVal
+        if (typeof transporteVal === 'number') payload.transporte_formatado = fmtOpcional(transporteVal)
+      }
 
       return payload
     }
