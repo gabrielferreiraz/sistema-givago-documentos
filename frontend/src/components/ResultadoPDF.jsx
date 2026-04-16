@@ -5,22 +5,31 @@ import { gerarContrato } from '../utils/api'
 function sanitizarNomeArquivo(nome) {
   return (nome || 'documento.pdf')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')   // remove acentos
-    .replace(/[^a-zA-Z0-9._-]/g, '_') // substitui espaços e chars especiais
-    .replace(/_+/g, '_')               // colapsa underscores duplos
-    .replace(/^_|_(?=\.pdf$)/g, '')    // limpa bordas
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_(?=\.pdf$)/g, '')
 }
 
-async function compartilharPDF(pdfUrl, nomeArquivo) {
-  const response = await fetch(pdfUrl)
-  const blob = await response.blob()
+function base64ToBlob(base64) {
+  const binary = atob(base64.replace(/\s/g, ''))
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return new Blob([bytes], { type: 'application/pdf' })
+}
+
+async function compartilharPDF({ pdfBase64, pdfUrl, nomeArquivo }) {
+  const blob = pdfBase64
+    ? base64ToBlob(pdfBase64)
+    : await fetch(pdfUrl).then(r => r.blob())
+
   const nomeSeguro = sanitizarNomeArquivo(nomeArquivo)
   const file = new File([blob], nomeSeguro, { type: 'application/pdf' })
 
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     await navigator.share({ files: [file], title: nomeSeguro })
   } else {
-    window.open(pdfUrl, '_blank')
+    window.open(pdfUrl || '', '_blank')
   }
 }
 
@@ -30,8 +39,9 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
   const [sharing, setSharing] = useState(false)
   const [shareErro, setShareErro] = useState('')
 
-  // Aceita pdf_url ou url como campo do webhook
-  const pdfUrl = result.pdf_url || result.url || null
+  const pdfBase64 = result.pdf_base64 || null
+  const pdfUrl    = result.pdf_url || result.url || null
+  const podeSharar = !!(pdfBase64 || pdfUrl)
 
   // Log único para descobrir quais campos o webhook realmente retorna
   useEffect(() => {
@@ -40,11 +50,11 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCompartilhar = async () => {
-    if (!pdfUrl) return
+    if (!podeSharar) return
     setSharing(true)
     setShareErro('')
     try {
-      await compartilharPDF(pdfUrl, result.nome_arquivo)
+      await compartilharPDF({ pdfBase64, pdfUrl, nomeArquivo: result.nome_arquivo })
     } catch (err) {
       if (err.name !== 'AbortError') {
         setShareErro('Não foi possível compartilhar. Tente baixar o PDF manualmente.')
@@ -98,7 +108,7 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
         )}
 
         {/* Compartilhar arquivo PDF — só aparece quando o N8N retorna pdf_url */}
-        {pdfUrl && (
+        {podeSharar && (
           <div className="mb-3">
           <button
             onClick={handleCompartilhar}
