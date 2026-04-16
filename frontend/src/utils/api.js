@@ -275,6 +275,8 @@ function buildPayload(tipo, formData) {
         valor_cache_formatado: fmt(valorCache),
         valor_total:          valorTotal,
         valor_total_formatado: fmt(valorTotal),
+        // Assinatura digital
+        assinar_digitalmente: formData.assinar_digitalmente ?? false,
         // Cláusulas e observações
         clausulas_especiais: formData.clausulas_especiais || '',
         observacoes:         formData.observacoes || '',

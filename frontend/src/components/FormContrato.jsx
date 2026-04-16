@@ -951,6 +951,37 @@ export default function FormContrato({ values, onChange, onSubmit }) {
           )}
         </Section>
 
+        {/* Toggle: assinatura digital */}
+        <div>
+          <button
+            type="button"
+            onClick={() => set('assinar_digitalmente', !values.assinar_digitalmente)}
+            className={`flex items-center gap-3 w-full p-3.5 rounded-xl border transition-all select-none active:scale-[0.99]
+              ${values.assinar_digitalmente
+                ? 'border-gold-500/60 bg-gold-500/5 text-gray-200'
+                : 'border-stage-500 text-gray-500 hover:border-stage-400'
+              }`}
+          >
+            <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors
+              ${values.assinar_digitalmente ? 'border-gold-500 bg-gold-500' : 'border-gray-600'}`}
+            >
+              {values.assinar_digitalmente && (
+                <svg className="w-3 h-3 text-stage-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/>
+                </svg>
+              )}
+            </span>
+            <span className="font-body font-semibold" style={{ fontSize: 15 }}>
+              Assinar digitalmente
+            </span>
+          </button>
+          {values.assinar_digitalmente && (
+            <p className="text-gray-500 font-body mt-2 px-1" style={{ fontSize: 12 }}>
+              O contrato será gerado com assinatura digital de Givago incluindo código de verificação único.
+            </p>
+          )}
+        </div>
+
         <button type="submit" disabled={submitting} className="btn-primary w-full">
           {submitting
             ? <><SpinnerIcon /> Gerando...</>

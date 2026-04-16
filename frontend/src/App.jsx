@@ -65,6 +65,7 @@ function contratoInicial() {
     frase_rodape_modo: 'auto',
     frase_rodape_auto: '',
     frase_rodape_manual: '',
+    assinar_digitalmente: false,
   }
 }
 
