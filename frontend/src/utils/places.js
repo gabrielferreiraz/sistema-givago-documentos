@@ -1,6 +1,6 @@
 // ─── Google Places API v1 ─────────────────────────────────────────────────────
 // Usa a Places API nova (v1) que suporta CORS direto do browser.
-
+console.log('Places key:', import.meta.env.VITE_GOOGLE_PLACES_KEY)
 const KEY = import.meta.env.VITE_GOOGLE_PLACES_KEY
 
 /**
@@ -23,7 +23,11 @@ export async function buscarLocaisOnline(input) {
     }),
   })
 
-  if (!res.ok) return []
+  if (!res.ok) {
+    const erro = await res.json().catch(() => ({}))
+    console.warn('[places] erro da API:', res.status, erro?.error?.message || erro)
+    return []
+  }
   const data = await res.json()
 
   return (data.suggestions || [])
