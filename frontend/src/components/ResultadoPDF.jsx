@@ -21,12 +21,15 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
   const [sharing, setSharing] = useState(false)
   const [shareErro, setShareErro] = useState('')
 
+  // Aceita pdf_url ou url como campo do webhook
+  const pdfUrl = result.pdf_url || result.url || null
+
   const handleCompartilhar = async () => {
-    if (!result.pdf_url) return
+    if (!pdfUrl) return
     setSharing(true)
     setShareErro('')
     try {
-      await compartilharPDF(result.pdf_url, result.nome_arquivo)
+      await compartilharPDF(pdfUrl, result.nome_arquivo)
     } catch (err) {
       if (err.name !== 'AbortError') {
         setShareErro('Não foi possível compartilhar. Tente baixar o PDF manualmente.')
@@ -80,8 +83,7 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
         )}
 
         {/* Compartilhar arquivo PDF */}
-        {result.pdf_url && (
-          <div className="mb-3">
+        <div className="mb-3">
             <button
               onClick={handleCompartilhar}
               disabled={sharing}
@@ -109,7 +111,6 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
               <p className="text-amber-400 font-body text-xs mt-1.5 text-center">{shareErro}</p>
             )}
           </div>
-        )}
 
         <a
           href="https://wa.me/556796921144"

@@ -19,8 +19,8 @@ import {
 const CAMPOS_OBRIGATORIOS = ['nome', 'evento', 'local_evento', 'data_evento', 'horas', 'valor_cache']
 // backline e transporte têm validação própria (modo !== 'vazio')
 
-const OPCOES_HORAS      = [1, 2, 3]
-const OPCOES_HORAS_MEIA = [1.5, 2.5, 3.5]
+const HORAS_MIN = 1
+const HORAS_MAX = 6
 
 // Botões que DEFINEM o valor (substituem o que há no campo)
 const DEFINIR_VALOR = [
@@ -35,7 +35,6 @@ const ATALHOS_CAMPO = [
   { label: '1k',  centavos: 100000 },
 ]
 
-const HORAS_PADRAO = 2
 const HORAS_EXTRA = 3
 const EXTRA_CENTAVOS = 100000
 
@@ -327,52 +326,12 @@ export default function FormOrcamento({ values, onChange, onSubmit, onPreencherT
 
         {/* ── Horas ─────────────────────────────────────────── */}
         <Field id="horas" label="Quantas horas tocar" error={errors.horas}>
-          <div className="space-y-1.5">
-            <div className="grid grid-cols-3 gap-2">
-              {OPCOES_HORAS.map(h => {
-                const ativo = values.horas === String(h)
-                const ehPadrao = h === HORAS_PADRAO
-                return (
-                  <button
-                    key={h}
-                    type="button"
-                    onClick={() => set('horas', String(h))}
-                    className={`relative rounded-xl border font-bold font-body transition-all active:scale-95 select-none
-                      ${ativo
-                        ? 'bg-gold-500 border-gold-500 text-stage-900'
-                        : 'border-stage-500 text-gray-400 hover:border-gold-600 hover:text-gray-200 bg-stage-700'
-                      }`}
-                    style={{ minHeight: 56, fontSize: 16 }}
-                  >
-                    {h}h
-                    {ehPadrao && !ativo && (
-                      <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gold-600 opacity-60" />
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {OPCOES_HORAS_MEIA.map(h => {
-                const ativo = values.horas === String(h)
-                return (
-                  <button
-                    key={h}
-                    type="button"
-                    onClick={() => set('horas', String(h))}
-                    className={`relative rounded-lg border font-bold font-body transition-all active:scale-95 select-none py-1.5
-                      ${ativo
-                        ? 'bg-gold-500 border-gold-500 text-stage-900'
-                        : 'border-stage-500 text-gray-500 hover:border-gold-600 hover:text-gray-300 bg-stage-700'
-                      }`}
-                    style={{ fontSize: 12 }}
-                  >
-                    {Math.floor(h)}h30
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          <HorasControl
+            value={values.horas}
+            onChange={v => set('horas', v)}
+            min={HORAS_MIN}
+            max={HORAS_MAX}
+          />
           {errors.horas && <p className="text-red-400 text-xs mt-1.5 font-body">Selecione a duração</p>}
         </Field>
 
@@ -737,6 +696,56 @@ function extrairCidade(endereco) {
   const m2 = endereco.match(/([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s]+)\s*[-,]\s*([A-Z]{2})(?:[,\s]|$)/)
   if (m2) return `${m2[1].trim()}/${m2[2]}`
   return ''
+}
+
+function formatarHoras(h) {
+  const n = parseFloat(h)
+  if (isNaN(n)) return '2h'
+  return Number.isInteger(n) ? `${n}h` : `${Math.floor(n)}h30`
+}
+
+function HorasControl({ value, onChange, min = 1, max = 6 }) {
+  const atual = parseFloat(value) || 2
+  const podeDecrementar = atual > min
+  const podeIncrementar = atual < max
+
+  const ajustar = (delta) => {
+    const novo = Math.round((atual + delta) * 2) / 2
+    onChange(String(Math.max(min, Math.min(max, novo))))
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 text-center font-mono font-bold text-gold-400 bg-stage-700
+        border border-stage-500 rounded-xl py-2.5 select-none"
+        style={{ fontSize: 20 }}
+      >
+        {formatarHoras(value)}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={() => ajustar(0.5)}
+          disabled={!podeIncrementar}
+          className="px-3 py-1.5 rounded-lg border border-stage-500 bg-stage-700
+            text-gray-400 hover:border-gold-600 hover:text-gold-400
+            font-bold font-body transition-all active:scale-95 select-none
+            disabled:opacity-30 disabled:pointer-events-none"
+          style={{ fontSize: 12 }}
+        >+30min</button>
+        <button
+          type="button"
+          onClick={() => ajustar(-0.5)}
+          disabled={!podeDecrementar}
+          className="px-3 py-1.5 rounded-lg border border-stage-500 bg-stage-700
+            text-gray-400 hover:border-red-500/50 hover:text-red-400
+            font-bold font-body transition-all active:scale-95 select-none
+            disabled:opacity-30 disabled:pointer-events-none"
+          style={{ fontSize: 12 }}
+        >−30min</button>
+      </div>
+    </div>
+  )
 }
 
 function mascaraHorario(raw) {

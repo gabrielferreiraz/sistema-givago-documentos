@@ -58,8 +58,8 @@ const ATALHOS_CAMPO = [
   { label: '1k',  centavos: 100000 },
 ]
 
-const OPCOES_HORAS      = [1, 2, 3]
-const OPCOES_HORAS_MEIA = [1.5, 2.5, 3.5]
+const HORAS_MIN = 1
+const HORAS_MAX = 6
 
 const DEFINIR_VALOR = [
   { label: '1,5k', centavos: 150000 },
@@ -530,34 +530,12 @@ export default function FormContrato({ values, onChange, onSubmit }) {
                 />
               </Field>
               <Field id="horas" label="Duração do show" error={errors.horas} required>
-                <div className="space-y-1.5">
-                  <div className="flex gap-2">
-                    {OPCOES_HORAS.map(h => {
-                      const val = String(h)
-                      const ativo = values.horas === val
-                      return (
-                        <button key={h} type="button" onClick={() => set('horas', val)}
-                          className={`flex-1 rounded-xl border font-bold font-body transition-all active:scale-95 select-none py-2.5
-                            ${ativo ? 'border-gold-500 bg-gold-500/10 text-gold-400' : 'border-stage-500 text-gray-400 hover:border-stage-400'}`}
-                          style={{ fontSize: 14 }}
-                        >{h}h</button>
-                      )
-                    })}
-                  </div>
-                  <div className="flex gap-2">
-                    {OPCOES_HORAS_MEIA.map(h => {
-                      const val = String(h)
-                      const ativo = values.horas === val
-                      return (
-                        <button key={h} type="button" onClick={() => set('horas', val)}
-                          className={`flex-1 rounded-lg border font-bold font-body transition-all active:scale-95 select-none py-1.5
-                            ${ativo ? 'border-gold-500 bg-gold-500/10 text-gold-400' : 'border-stage-500 text-gray-500 hover:border-stage-400'}`}
-                          style={{ fontSize: 12 }}
-                        >{Math.floor(h)}h30</button>
-                      )
-                    })}
-                  </div>
-                </div>
+                <HorasControl
+                  value={values.horas}
+                  onChange={v => set('horas', v)}
+                  min={HORAS_MIN}
+                  max={HORAS_MAX}
+                />
                 {errors.horas && <p className="text-red-400 text-xs mt-1.5 font-body">Selecione a duração</p>}
               </Field>
             </div>
@@ -981,6 +959,48 @@ export default function FormContrato({ values, onChange, onSubmit }) {
         </button>
 
       </form>
+    </div>
+  )
+}
+
+// ─── HorasControl ────────────────────────────────────────────────────────────
+
+function formatarHoras(h) {
+  const n = parseFloat(h)
+  if (isNaN(n)) return '2h'
+  return Number.isInteger(n) ? `${n}h` : `${Math.floor(n)}h30`
+}
+
+function HorasControl({ value, onChange, min = 1, max = 6 }) {
+  const atual = parseFloat(value) || 2
+  const ajustar = (delta) => {
+    const novo = Math.round((atual + delta) * 2) / 2
+    onChange(String(Math.max(min, Math.min(max, novo))))
+  }
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 text-center font-mono font-bold text-gold-400 bg-stage-700
+        border border-stage-500 rounded-xl py-2.5 select-none"
+        style={{ fontSize: 20 }}
+      >
+        {formatarHoras(value)}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <button type="button" onClick={() => ajustar(0.5)} disabled={atual >= max}
+          className="px-3 py-1.5 rounded-lg border border-stage-500 bg-stage-700
+            text-gray-400 hover:border-gold-600 hover:text-gold-400
+            font-bold font-body transition-all active:scale-95 select-none
+            disabled:opacity-30 disabled:pointer-events-none"
+          style={{ fontSize: 12 }}
+        >+30min</button>
+        <button type="button" onClick={() => ajustar(-0.5)} disabled={atual <= min}
+          className="px-3 py-1.5 rounded-lg border border-stage-500 bg-stage-700
+            text-gray-400 hover:border-red-500/50 hover:text-red-400
+            font-bold font-body transition-all active:scale-95 select-none
+            disabled:opacity-30 disabled:pointer-events-none"
+          style={{ fontSize: 12 }}
+        >−30min</button>
+      </div>
     </div>
   )
 }
