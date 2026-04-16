@@ -1,6 +1,5 @@
 // ─── Google Places API v1 ─────────────────────────────────────────────────────
 // Usa a Places API nova (v1) que suporta CORS direto do browser.
-console.log('Places key:', import.meta.env.VITE_GOOGLE_PLACES_KEY)
 const KEY = import.meta.env.VITE_GOOGLE_PLACES_KEY
 
 /**
