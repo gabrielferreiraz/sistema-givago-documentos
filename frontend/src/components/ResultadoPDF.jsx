@@ -88,15 +88,15 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
           </button>
         )}
 
-        {/* Compartilhar arquivo PDF */}
-        <div className="mb-3">
+        {/* Compartilhar arquivo PDF — só aparece quando o N8N retorna pdf_url */}
+        {pdfUrl && (
+          <div className="mb-3">
           <button
             onClick={handleCompartilhar}
-            disabled={sharing || !pdfUrl}
-            className={`flex items-center justify-center gap-2 w-full rounded-xl font-bold font-body
-              active:scale-95 text-white transition-all select-none
-              disabled:opacity-50 disabled:pointer-events-none
-              ${pdfUrl ? 'bg-green-600 hover:bg-green-500' : 'bg-stage-600 border border-stage-500'}`}
+            disabled={sharing}
+            className="flex items-center justify-center gap-2 w-full rounded-xl font-bold font-body
+              bg-green-600 hover:bg-green-500 active:scale-95 text-white transition-all select-none
+              disabled:opacity-50 disabled:pointer-events-none"
             style={{ fontSize: 16, minHeight: 52 }}
           >
             {sharing ? (
@@ -107,19 +107,18 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
                 </svg>
                 Preparando arquivo...
               </>
-            ) : pdfUrl ? (
+            ) : (
               <>
                 <WhatsAppIcon />
                 Compartilhar PDF
               </>
-            ) : (
-              <span className="text-gray-400">URL do PDF não retornada pelo servidor</span>
             )}
           </button>
             {shareErro && (
               <p className="text-amber-400 font-body text-xs mt-1.5 text-center">{shareErro}</p>
             )}
           </div>
+        )}
 
         <a
           href="https://wa.me/556796921144"
