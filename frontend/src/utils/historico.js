@@ -144,3 +144,28 @@ export function removerEvento(evento) {
   const { salvos } = carregarEventos()
   localStorage.setItem(KEY_EVENTOS, JSON.stringify(salvos.filter(e => e !== evento)))
 }
+
+// ─── Frases do rodapé salvas pelo usuário ────────────────────────────────────
+
+const KEY_FRASES = 'givago_frases_rodape'
+
+export function carregarFrasesRodape() {
+  try {
+    return JSON.parse(localStorage.getItem(KEY_FRASES) || '[]')
+  } catch {
+    return []
+  }
+}
+
+export function salvarFraseRodape(frase) {
+  const salvos = carregarFrasesRodape()
+  const trimmed = frase.trim()
+  if (trimmed && !salvos.includes(trimmed)) {
+    localStorage.setItem(KEY_FRASES, JSON.stringify([trimmed, ...salvos]))
+  }
+}
+
+export function removerFraseRodape(frase) {
+  const salvos = carregarFrasesRodape()
+  localStorage.setItem(KEY_FRASES, JSON.stringify(salvos.filter(f => f !== frase)))
+}

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { formatarMoeda, limparMoeda, formatarTelefone, formatarCpfCnpj, validarCampos, formatarCEP } from '../utils/form'
 import { SpinnerIcon, PDFIcon, ClearButton } from './icons'
 import AutocompleteInput from './AutocompleteInput'
-import { carregarLocais, salvarLocal, removerLocal, buscarEnderecoLocal, carregarEventos, salvarEvento, removerEvento } from '../utils/historico'
+import { carregarLocais, salvarLocal, removerLocal, buscarEnderecoLocal, carregarEventos, salvarEvento, removerEvento, carregarFrasesRodape, salvarFraseRodape, removerFraseRodape } from '../utils/historico'
 import { buscarLocaisOnline } from '../utils/places'
 
 const FRASES_POR_EVENTO = {
@@ -84,6 +84,7 @@ export default function FormContrato({ values, onChange, onSubmit }) {
   const [cnpjOk, setCnpjOk] = useState(false)
   const [locaisState, setLocaisState] = useState(() => carregarLocais())
   const [eventosState, setEventosState] = useState(() => carregarEventos())
+  const [frasesRodape, setFrasesRodape] = useState(() => carregarFrasesRodape())
   const [placesOnline, setPlacesOnline] = useState([])
   const [pessoasInput, setPessoasInput] = useState(() =>
     values.pessoas_banda != null ? String(values.pessoas_banda) : '7'
@@ -180,6 +181,16 @@ export default function FormContrato({ values, onChange, onSubmit }) {
   const handleDeletarLocal = (local) => {
     removerLocal(local)
     setLocaisState(carregarLocais())
+  }
+
+  const handleSalvarFrase = (frase) => {
+    salvarFraseRodape(frase)
+    setFrasesRodape(carregarFrasesRodape())
+  }
+
+  const handleRemoverFrase = (frase) => {
+    removerFraseRodape(frase)
+    setFrasesRodape(carregarFrasesRodape())
   }
 
   const handleLocalChange = (v) => {
@@ -932,19 +943,76 @@ export default function FormContrato({ values, onChange, onSubmit }) {
 
               {/* Modo manual — input livre */}
               {values.frase_rodape_modo === 'manual' && (
-                <div>
-                  <label htmlFor="frase_rodape_manual" className="label">Frase personalizada</label>
-                  <div className="relative">
-                    <input
-                      id="frase_rodape_manual"
-                      className={`input-field ${values.frase_rodape_manual ? 'pr-8' : ''}`}
-                      value={values.frase_rodape_manual}
-                      onChange={e => set('frase_rodape_manual', e.target.value)}
-                      placeholder='Ex: "Noite que ficará pra sempre na memória!"'
-                      autoComplete="off"
-                    />
-                    {values.frase_rodape_manual && <ClearButton onClick={() => set('frase_rodape_manual', '')} />}
+                <div className="space-y-3">
+                  <div>
+                    <label htmlFor="frase_rodape_manual" className="label">Frase personalizada</label>
+                    <div className="relative">
+                      <input
+                        id="frase_rodape_manual"
+                        className={`input-field ${values.frase_rodape_manual ? 'pr-8' : ''}`}
+                        value={values.frase_rodape_manual}
+                        onChange={e => set('frase_rodape_manual', e.target.value)}
+                        placeholder='Ex: "Noite que ficará pra sempre na memória!"'
+                        autoComplete="off"
+                      />
+                      {values.frase_rodape_manual && <ClearButton onClick={() => set('frase_rodape_manual', '')} />}
+                    </div>
+                    {/* Botão salvar — só aparece quando há texto e ainda não está salvo */}
+                    {values.frase_rodape_manual.trim() && !frasesRodape.includes(values.frase_rodape_manual.trim()) && (
+                      <button
+                        type="button"
+                        onClick={() => handleSalvarFrase(values.frase_rodape_manual)}
+                        className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                          border border-gold-500/40 bg-gold-500/10 text-gold-400
+                          font-body font-semibold transition-all active:scale-95 hover:bg-gold-500/20"
+                        style={{ fontSize: 13 }}
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Salvar frase
+                      </button>
+                    )}
                   </div>
+
+                  {/* Frases salvas — aparecem como opções reutilizáveis */}
+                  {frasesRodape.length > 0 && (
+                    <div>
+                      <p className="text-gray-600 font-body mb-2" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Frases salvas
+                      </p>
+                      <div className="space-y-1.5">
+                        {frasesRodape.map(frase => (
+                          <div key={frase} className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => set('frase_rodape_manual', frase)}
+                              className={`flex-1 text-left px-3 py-2 rounded-xl border font-body transition-all active:scale-[0.99]
+                                ${values.frase_rodape_manual === frase
+                                  ? 'border-gold-500/60 bg-gold-500/10 text-gold-400'
+                                  : 'border-stage-500 bg-stage-700 text-gray-300 hover:border-stage-400'
+                                }`}
+                              style={{ fontSize: 14 }}
+                            >
+                              {frase}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoverFrase(frase)}
+                              className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center
+                                text-gray-600 hover:text-red-400 hover:bg-red-500/10
+                                transition-colors active:scale-90"
+                              title="Remover frase salva"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
