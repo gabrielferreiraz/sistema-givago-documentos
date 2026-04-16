@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { hoje, formatarCpfCnpj, formatarCEP } from '../utils/form'
 import { gerarContrato } from '../utils/api'
 
@@ -23,6 +23,12 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
 
   // Aceita pdf_url ou url como campo do webhook
   const pdfUrl = result.pdf_url || result.url || null
+
+  // Log único para descobrir quais campos o webhook realmente retorna
+  useEffect(() => {
+    console.log('[givago] result completo:', JSON.stringify(result, null, 2))
+    if (!pdfUrl) console.warn('[givago] pdf_url não encontrado nos campos:', Object.keys(result))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCompartilhar = async () => {
     if (!pdfUrl) return
@@ -84,29 +90,32 @@ export default function ResultadoPDF({ result, documentType, onNewDocument, orca
 
         {/* Compartilhar arquivo PDF */}
         <div className="mb-3">
-            <button
-              onClick={handleCompartilhar}
-              disabled={sharing}
-              className="flex items-center justify-center gap-2 w-full rounded-xl font-bold font-body
-                bg-green-600 hover:bg-green-500 active:scale-95 text-white transition-all select-none
-                disabled:opacity-60 disabled:pointer-events-none"
-              style={{ fontSize: 16, minHeight: 52 }}
-            >
-              {sharing ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-                  </svg>
-                  Preparando arquivo...
-                </>
-              ) : (
-                <>
-                  <WhatsAppIcon />
-                  Compartilhar PDF
-                </>
-              )}
-            </button>
+          <button
+            onClick={handleCompartilhar}
+            disabled={sharing || !pdfUrl}
+            className={`flex items-center justify-center gap-2 w-full rounded-xl font-bold font-body
+              active:scale-95 text-white transition-all select-none
+              disabled:opacity-50 disabled:pointer-events-none
+              ${pdfUrl ? 'bg-green-600 hover:bg-green-500' : 'bg-stage-600 border border-stage-500'}`}
+            style={{ fontSize: 16, minHeight: 52 }}
+          >
+            {sharing ? (
+              <>
+                <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+                Preparando arquivo...
+              </>
+            ) : pdfUrl ? (
+              <>
+                <WhatsAppIcon />
+                Compartilhar PDF
+              </>
+            ) : (
+              <span className="text-gray-400">URL do PDF não retornada pelo servidor</span>
+            )}
+          </button>
             {shareErro && (
               <p className="text-amber-400 font-body text-xs mt-1.5 text-center">{shareErro}</p>
             )}
