@@ -2,15 +2,24 @@ import { useState, useEffect } from 'react'
 import { hoje, formatarCpfCnpj, formatarCEP } from '../utils/form'
 import { gerarContrato } from '../utils/api'
 
+function sanitizarNomeArquivo(nome) {
+  return (nome || 'documento.pdf')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')   // remove acentos
+    .replace(/[^a-zA-Z0-9._-]/g, '_') // substitui espaços e chars especiais
+    .replace(/_+/g, '_')               // colapsa underscores duplos
+    .replace(/^_|_(?=\.pdf$)/g, '')    // limpa bordas
+}
+
 async function compartilharPDF(pdfUrl, nomeArquivo) {
   const response = await fetch(pdfUrl)
   const blob = await response.blob()
-  const file = new File([blob], nomeArquivo || 'documento.pdf', { type: 'application/pdf' })
+  const nomeSeguro = sanitizarNomeArquivo(nomeArquivo)
+  const file = new File([blob], nomeSeguro, { type: 'application/pdf' })
 
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    await navigator.share({ files: [file], title: nomeArquivo || 'Documento' })
+    await navigator.share({ files: [file], title: nomeSeguro })
   } else {
-    // Fallback: abre link em nova aba se o browser não suportar share de arquivos
     window.open(pdfUrl, '_blank')
   }
 }
