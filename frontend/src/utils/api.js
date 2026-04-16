@@ -222,39 +222,55 @@ function buildPayload(tipo, formData) {
     }
 
     case 'contrato': {
-      const valorNumerico = limparMoeda(formData.valor_cache)
-      return {
+      const valorCache = limparMoeda(formData.valor_cache)
+
+      // Backline: undefined = não informado, 'incluso', ou número
+      let backlineVal
+      if (formData.backline_modo === 'incluso') backlineVal = 'incluso'
+      else if (formData.backline_modo === 'valor' && formData.backline) backlineVal = limparMoeda(formData.backline)
+
+      // Transporte: mesma lógica
+      let transporteVal
+      if (formData.transporte_modo === 'incluso') transporteVal = 'incluso'
+      else if (formData.transporte_modo === 'valor' && formData.transporte) transporteVal = limparMoeda(formData.transporte)
+
+      // Valor total = cachê + extras numéricos
+      const valorTotal = valorCache
+        + (typeof backlineVal === 'number' ? backlineVal : 0)
+        + (typeof transporteVal === 'number' ? transporteVal : 0)
+
+      const fmt = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })
+
+      const payload = {
         ...base,
         // Identificação do contrato
         data_assinatura: formData.data_assinatura,
         data_assinatura_br: formatarDataBR(formData.data_assinatura),
         // Contratante
-        nome_contratante:         formData.nome_contratante,
-        cpf_cnpj:                 formData.cpf_cnpj,
-        rg:                       formData.rg || '',
-        ssp_uf:                   formData.ssp_uf || '',
-        telefone:                 formData.telefone,
-        cep:                      formData.cep || '',
-        endereco_rua:             formData.endereco_rua || '',
-        endereco_numero:          formData.endereco_numero || '',
-        endereco_bairro:          formData.endereco_bairro || '',
+        nome_contratante:          formData.nome_contratante,
+        cpf_cnpj:                  formData.cpf_cnpj,
+        rg:                        formData.rg || '',
+        ssp_uf:                    formData.ssp_uf || '',
+        telefone:                  formData.telefone,
+        cep:                       formData.cep || '',
+        endereco_rua:              formData.endereco_rua || '',
+        endereco_numero:           formData.endereco_numero || '',
+        endereco_bairro:           formData.endereco_bairro || '',
         cidade_estado_contratante: formData.cidade_estado_contratante || '',
         // Evento
-        nome_evento:          formData.nome_evento,
-        horas:                formData.horas,
-        local_evento:         formData.local_evento,
+        nome_evento:           formData.nome_evento,
+        horas:                 formData.horas,
+        local_evento:          formData.local_evento,
         endereco_local_evento: formData.endereco_local_evento || '',
         ...(formData.pessoas_banda !== null && formData.pessoas_banda !== undefined
           ? { pessoas_banda: parseInt(formData.pessoas_banda, 10) || 7 }
           : {}),
         // Financeiro
-        forma_pagamento: formData.forma_pagamento,
-        valor_cache: valorNumerico,
-        valor_cache_formatado: valorNumerico.toLocaleString('pt-BR', {
-          style: 'currency',
-          currency: 'BRL',
-          minimumFractionDigits: 2,
-        }),
+        forma_pagamento:      formData.forma_pagamento,
+        valor_cache:          valorCache,
+        valor_cache_formatado: fmt(valorCache),
+        valor_total:          valorTotal,
+        valor_total_formatado: fmt(valorTotal),
         // Cláusulas e observações
         clausulas_especiais: formData.clausulas_especiais || '',
         observacoes:         formData.observacoes || '',
@@ -264,6 +280,11 @@ function buildPayload(tipo, formData) {
           return formData.frase_rodape_auto || ''
         })(),
       }
+
+      if (backlineVal !== undefined)   payload.backline   = backlineVal
+      if (transporteVal !== undefined) payload.transporte = transporteVal
+
+      return payload
     }
 
     default:

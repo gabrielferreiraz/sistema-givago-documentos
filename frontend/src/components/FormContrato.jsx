@@ -53,6 +53,11 @@ const CAMPOS_BASE = [
   'local_evento', 'valor_cache', 'forma_pagamento', 'data_assinatura',
 ]
 
+const ATALHOS_CAMPO = [
+  { label: '500', centavos: 50000 },
+  { label: '1k',  centavos: 100000 },
+]
+
 const OPCOES_HORAS = [1, 2, 3]
 
 const DEFINIR_VALOR = [
@@ -238,6 +243,10 @@ export default function FormContrato({ values, onChange, onSubmit }) {
     e.preventDefault()
     const campos = isCNPJ ? CAMPOS_BASE : [...CAMPOS_BASE, ...CAMPOS_CPF_EXTRA]
     const erros = validarCampos(values, campos)
+    if (values.backline_modo === 'vazio') erros.backline = true
+    if (values.backline_modo === 'valor' && !values.backline) erros.backline = true
+    if (values.transporte_modo === 'vazio') erros.transporte = true
+    if (values.transporte_modo === 'valor' && !values.transporte) erros.transporte = true
     if (Object.keys(erros).length > 0) {
       setErrors(erros)
       document.getElementById(Object.keys(erros)[0])
@@ -746,6 +755,28 @@ export default function FormContrato({ values, onChange, onSubmit }) {
               )}
             </div>
 
+            {/* Backline */}
+            <CampoOpcional
+              id="backline"
+              label="Backline"
+              value={values.backline}
+              onChange={v => set('backline', v)}
+              modo={values.backline_modo}
+              onModoChange={m => set('backline_modo', m)}
+              error={errors.backline}
+            />
+
+            {/* Transporte */}
+            <CampoOpcional
+              id="transporte"
+              label="Transporte"
+              value={values.transporte}
+              onChange={v => set('transporte', v)}
+              modo={values.transporte_modo}
+              onModoChange={m => set('transporte_modo', m)}
+              error={errors.transporte}
+            />
+
             <Field id="forma_pagamento" label="Forma de pagamento" required>
               <div className="space-y-2">
                 {FORMAS_PAGAMENTO.map(forma => (
@@ -923,6 +954,115 @@ export default function FormContrato({ values, onChange, onSubmit }) {
 
       </form>
     </div>
+  )
+}
+
+// ─── CampoOpcional (Backline / Transporte) ────────────────────────────────────
+
+function CampoOpcional({ id, label, value, onChange, modo, onModoChange, error }) {
+  const selecionarModo = (novoModo) => {
+    if (novoModo === modo) {
+      onModoChange('vazio'); onChange('')
+    } else if (novoModo === 'incluso') {
+      onModoChange('incluso'); onChange('incluso')
+    } else {
+      onModoChange('valor'); onChange('')
+    }
+  }
+
+  return (
+    <div id={id}>
+      <div className="flex items-center justify-between mb-2">
+        <label className="label mb-0">
+          {label}
+          {error && modo === 'vazio' && (
+            <span className="ml-2 text-red-400 normal-case tracking-normal font-normal" style={{ fontSize: 11 }}>
+              — obrigatório
+            </span>
+          )}
+        </label>
+        <div className={`flex bg-stage-700 rounded-lg p-0.5 gap-0.5 transition-colors ${error && modo === 'vazio' ? 'ring-1 ring-red-500/50' : ''}`}>
+          <ToggleBtn active={modo === 'incluso'} onClick={() => selecionarModo('incluso')}>
+            Incluso
+          </ToggleBtn>
+          <ToggleBtn active={modo === 'valor'} onClick={() => selecionarModo('valor')}>
+            Informar valor
+          </ToggleBtn>
+        </div>
+      </div>
+
+      {modo === 'valor' && (
+        <div className="relative animate-fade-in">
+          <input
+            id={`${id}_input`}
+            className={`input-field font-mono text-gold-400 ${error && !value ? 'border-red-500' : ''}`}
+            style={{ paddingRight: value ? '7rem' : '5.5rem' }}
+            value={value}
+            onChange={e => onChange(formatarMoeda(e.target.value))}
+            placeholder="R$ 0,00"
+            inputMode="numeric"
+            autoComplete="off"
+            autoFocus
+          />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {ATALHOS_CAMPO.map(({ label: lbl, centavos }) => (
+              <button
+                key={lbl}
+                type="button"
+                onClick={() => {
+                  const atual = Math.round(limparMoeda(value) * 100)
+                  onChange(formatarMoeda(String(atual + centavos)))
+                }}
+                className="px-1.5 py-0.5 rounded text-gold-400 bg-stage-500 hover:bg-gold-500/20
+                  font-bold font-body transition-colors active:scale-90 select-none"
+                style={{ fontSize: 11 }}
+              >
+                +{lbl}
+              </button>
+            ))}
+            {value && (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                className="w-5 h-5 rounded-full bg-stage-500 hover:bg-red-500/30
+                  text-gray-400 hover:text-red-400 flex items-center justify-center
+                  transition-colors active:scale-90 ml-0.5"
+              >
+                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {error && !value && (
+            <p className="text-red-400 text-xs mt-1.5 font-body">Informe o valor</p>
+          )}
+        </div>
+      )}
+
+      {modo === 'incluso' && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-stage-500 bg-stage-700 animate-fade-in">
+          <svg className="w-4 h-4 text-gold-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="text-gray-300 font-body" style={{ fontSize: 15 }}>Incluso no cachê</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ToggleBtn({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 rounded-md font-bold font-body transition-all select-none active:scale-95
+        ${active ? 'bg-gold-500 text-stage-900' : 'text-gray-400 hover:text-gray-200'}`}
+      style={{ fontSize: 13, minHeight: 36 }}
+    >
+      {children}
+    </button>
   )
 }
 
